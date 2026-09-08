@@ -1,0 +1,14 @@
+{
+  "type": "appeal",
+  "nameAr": "استئناف",
+  "description": "طلب استئناف حكم",
+  "fields": [
+    { "key": "appellantName", "label": "اسم المستأنف", "required": true },
+    { "key": "respondentName", "label": "اسم المستأنف ضده", "required": true },
+    { "key": "judgmentRef", "label": "رقم الحكم المستأنف", "required": true },
+    { "key": "tribunal", "label": "المحكمة التي أصدرت الحكم", "required": true },
+    { "key": "appealCourt", "label": "محكمة الاستئناف", "required": true },
+    { "key": "grounds", "label": "أسباب الاستئناف", "required": true },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "type": "memorandum_introductif",
+  "nameAr": "المقال الافتتاحي",
+  "description": "مقال افتتاحي للمطالبة بحق",
+  "fields": [
+    { "key": "plaintiffName", "label": "اسم المدعي", "required": true },
+    { "key": "defendantName", "label": "اسم المدعى عليه", "required": true },
+    { "key": "subject", "label": "موضوع الدعوى", "required": true },
+    { "key": "facts", "label": "الوقائع", "required": true },
+    { "key": "legalBasis", "label": "الأساس القانوني", "required": false },
+    { "key": "requests", "label": "الطلبات", "required": true },
+    { "key": "tribunal", "label": "المحكمة", "required": true },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

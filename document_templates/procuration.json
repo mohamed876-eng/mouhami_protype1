@@ -1,0 +1,14 @@
+{
+  "type": "procuration",
+  "nameAr": "الوكالة",
+  "description": "وكالة قانونية لتوكيل محامي",
+  "fields": [
+    { "key": "clientName", "label": "اسم الموكل", "required": true },
+    { "key": "cin", "label": "رقم البطاقة الوطنية", "required": true },
+    { "key": "address", "label": "عنوان الموكل", "required": false },
+    { "key": "tribunal", "label": "المحكمة", "required": false },
+    { "key": "lawyerName", "label": "اسم المحامي", "required": true },
+    { "key": "caseRef", "label": "رقم الملف", "required": false },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

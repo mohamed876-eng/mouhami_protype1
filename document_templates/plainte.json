@@ -1,0 +1,25 @@
+{
+  "type": "plainte",
+  "nameAr": "الشكاية",
+  "description": "شكاية قانونية موجهة للنيابة العامة",
+  "fields": [
+    { "key": "plaintiffName", "label": "اسم المشتكي", "required": true },
+    { "key": "cin", "label": "رقم البطاقة الوطنية", "required": true },
+    { "key": "plaintiffProfession", "label": "مهنة المشتكي", "required": false },
+    { "key": "plaintiffAddress", "label": "عنوان المشتكي", "required": true },
+    { "key": "plaintiffPhone", "label": "هاتف المشتكي", "required": false },
+    { "key": "lawyerName", "label": "اسم المحامي", "required": true },
+    { "key": "lawyerBar", "label": "الهيئة", "required": true },
+    { "key": "lawyerLicense", "label": "رقم الوكالة", "required": false },
+    { "key": "defendantName", "label": "اسم المشتكى به", "required": true },
+    { "key": "defendantCapacity", "label": "صفة المشتكى به", "required": false },
+    { "key": "defendantAddress", "label": "عنوان المشتكى به", "required": false },
+    { "key": "defendantPhone", "label": "هاتف المشتكى به", "required": false },
+    { "key": "subject", "label": "موضوع الشكاية", "required": true },
+    { "key": "facts", "label": "الوقائع", "required": true },
+    { "key": "legalArguments", "label": "المناقشة القانونية", "required": false },
+    { "key": "tribunal", "label": "المحكمة المختصة", "required": true },
+    { "key": "attachments", "label": "المرفقات", "required": false },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

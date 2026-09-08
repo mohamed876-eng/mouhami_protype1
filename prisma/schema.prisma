@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid()) @db.Uuid
+  email          String          @unique
+  password       String
+  nom            String
+  prenom         String
+  telephone      String?
+  role           String          @default("admin")
+  isActive       Boolean         @default(true)
+  refreshToken   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  lastLogin      DateTime?
+  clientId       String?         @unique @db.Uuid
+  activities     Activity[]
+  notifications  Notification[]
+  reminderEvents ReminderEvent[]
+  reminders      Reminder[]
+  client         Client?         @relation(fields: [clientId], references: [id])
+
+  @@map("users")
+}
+
+model Client {
+  id             String          @id @default(uuid()) @db.Uuid
+  nom            String
+  prenom         String
+  cin            String          @unique
+  telephone      String
+  adresse        String?
+  ville          String?
+  profession     String?
+  photo          String?
+  email          String?
+  statut         String          @default("actif")
+  observations   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  cases          Case[]
+  reminderEvents ReminderEvent[]
+  user           User?
+
+  @@map("clients")
+}
+
+model Case {
+  id             String              @id @default(uuid()) @db.Uuid
+  reference      String              @unique
+  mahakimRef     String?
+  tribunal       String?
+  type           String
+  sousType       String?
+  dateCreation   DateTime            @default(now())
+  etat           String              @default("en_cours")
+  description    String?
+  notes          String?
+  progress       Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  clientId       String              @db.Uuid
+  templateId     String?             @db.Uuid
+  caseTypeId     String?             @db.Uuid
+  activities     Activity[]
+  checklist      CaseChecklistItem[]
+  caseType       CaseType?           @relation(fields: [caseTypeId], references: [id])
+  client         Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template       CaseTemplate?       @relation(fields: [templateId], references: [id])
+  documents      Document[]
+  hearings       Hearing[]
+  payments       Payment[]
+  reminderEvents ReminderEvent[]
+
+  @@map("cases")
+}
+
+model CaseType {
+  id          String             @id @default(uuid()) @db.Uuid
+  nameAr      String
+  description String?
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  documents   CaseTypeDocument[]
+  cases       Case[]
+
+  @@map("case_types")
+}
+
+model CaseTypeDocument {
+  id          String   @id @default(uuid()) @db.Uuid
+  nameAr      String
+  description String?
+  isRequired  Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  caseTypeId  String   @db.Uuid
+  caseType    CaseType @relation(fields: [caseTypeId], references: [id], onDelete: Cascade)
+
+  @@map("case_type_documents")
+}
+
+model CaseTemplate {
+  id          String                 @id @default(uuid()) @db.Uuid
+  nom         String
+  slug        String                 @unique
+  description String?
+  createdAt   DateTime               @default(now())
+  documents   CaseTemplateDocument[]
+  cases       Case[]
+
+  @@map("case_templates")
+}
+
+model CaseTemplateDocument {
+  id          String       @id @default(uuid()) @db.Uuid
+  nom         String
+  obligatoire Boolean      @default(true)
+  ordre       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  templateId  String       @db.Uuid
+  template    CaseTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("case_template_documents")
+}
+
+model CaseChecklistItem {
+  id          String     @id @default(uuid()) @db.Uuid
+  nom         String
+  obligatoire Boolean    @default(true)
+  ordre       Int        @default(0)
+  coche       Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  casId       String     @db.Uuid
+  cas         Case       @relation(fields: [casId], references: [id], onDelete: Cascade)
+  documents   Document[]
+
+  @@map("case_checklist_items")
+}
+
+model DocumentType {
+  id        String     @id @default(uuid()) @db.Uuid
+  nom       String
+  slug      String     @unique
+  icon      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  documents Document[]
+
+  @@map("document_types")
+}
+
+model Document {
+  id              String             @id @default(uuid()) @db.Uuid
+  nom             String
+  description     String?
+  fileName        String
+  filePath        String
+  fileSize        Int?
+  auteur          String?
+  etat            String             @default("en_attente")
+  commentaires    String?
+  uploadedAt      DateTime           @default(now())
+  isClientVisible Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  casId           String             @db.Uuid
+  typeId          String?            @db.Uuid
+  checklistItemId String?            @db.Uuid
+  cas             Case               @relation(fields: [casId], references: [id], onDelete: Cascade)
+  checklistItem   CaseChecklistItem? @relation(fields: [checklistItemId], references: [id])
+  type            DocumentType?      @relation(fields: [typeId], references: [id])
+
+  @@map("documents")
+}
+
+model Hearing {
+  id        String   @id @default(uuid()) @db.Uuid
+  date      DateTime
+  heure     String?
+  type      String?
+  tribunal  String?
+  salle     String?
+  juge      String?
+  statut    String   @default("planifiee")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  casId     String   @db.Uuid
+  cas       Case     @relation(fields: [casId], references: [id], onDelete: Cascade)
+
+  @@map("hearings")
+}
+
+model Notification {
+  id            String   @id @default(uuid()) @db.Uuid
+  titre         String
+  message       String
+  type          String
+  lu            Boolean  @default(false)
+  referenceType String?
+  referenceId   String?
+  createdAt     DateTime @default(now())
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Activity {
+  id          String   @id @default(uuid()) @db.Uuid
+  action      String
+  entity      String
+  entityId    String?  @db.Uuid
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  userId      String   @db.Uuid
+  casId       String?  @db.Uuid
+  cas         Case?    @relation(fields: [casId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+model Payment {
+  id        String   @id @default(uuid()) @db.Uuid
+  montant   Float
+  date      DateTime
+  mode      String
+  reference String?
+  notes     String?
+  createdAt DateTime @default(now())
+  casId     String   @db.Uuid
+  cas       Case     @relation(fields: [casId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model ReminderEvent {
+  id          String     @id @default(uuid()) @db.Uuid
+  userId      String     @db.Uuid
+  title       String
+  description String?
+  clientId    String?    @db.Uuid
+  caseId      String?    @db.Uuid
+  type        EventType  @default(AUDIENCE)
+  date        DateTime
+  time        String?
+  lieu        String?
+  priority    Priority   @default(NORMALE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  cas         Case?      @relation(fields: [caseId], references: [id])
+  client      Client?    @relation(fields: [clientId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminders   Reminder[]
+
+  @@map("reminder_events")
+}
+
+model Reminder {
+  id          String        @id @default(uuid()) @db.Uuid
+  eventId     String        @db.Uuid
+  userId      String        @db.Uuid
+  title       String
+  description String?
+  remindAt    DateTime
+  notified    Boolean       @default(false)
+  dismissed   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  event       ReminderEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reminders")
+}
+
+model Setting {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+enum EventType {
+  RENDEZ_VOUS
+  AUDIENCE
+  TACHE
+  ECHEANCE
+}
+
+enum Priority {
+  FAIBLE
+  NORMALE
+  IMPORTANTE
+  URGENTE
+}

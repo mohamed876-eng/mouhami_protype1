@@ -1,0 +1,13 @@
+{
+  "type": "contract",
+  "nameAr": "عقد",
+  "description": "عقد قانوني بين طرفين",
+  "fields": [
+    { "key": "party1", "label": "الطرف الأول", "required": true },
+    { "key": "party2", "label": "الطرف الثاني", "required": true },
+    { "key": "subject", "label": "موضوع العقد", "required": true },
+    { "key": "amount", "label": "المبلغ", "required": false },
+    { "key": "duration", "label": "المدة", "required": false },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

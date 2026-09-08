@@ -1,0 +1,23 @@
+import scale from "./doodle-outline-1468-scale-retro-hover-pinch.json";
+import search from "./system-outline-19-magnifier-hover-pinch.json";
+import folder from "./dossier.json";
+import document from "./doodle-outline-245-file-pencil-in-reveal.json";
+import notification from "./wired-gradient-3095-mail-open-bell-in-reveal.json";
+import clients from "./doodle-outline-955-avatars-message-plus-hover-pinch.json";
+import plus from "./plus.json";
+import clubhouse from "./wired-outline-2716-logo-clubhouse-in-reveal.json";
+import calendar from "./calendar.json";
+import clock from "./clock.json";
+import book from "./book.json";
+
+export const lottieJustice = scale;
+export const lottieSearch = search;
+export const lottieFolder = folder;
+export const lottieDocument = document;
+export const lottieNotification = notification;
+export const lottieClients = clients;
+export const lottiePlus = plus;
+export const lottieClubhouse = clubhouse;
+export const lottieCalendar = calendar;
+export const lottieClock = clock;
+export const lottieBook = book;

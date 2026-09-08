@@ -1,0 +1,13 @@
+{
+  "type": "summons",
+  "nameAr": "إنذار",
+  "description": "إنذار قانوني قبل التقاضي",
+  "fields": [
+    { "key": "senderName", "label": "اسم المرسل", "required": true },
+    { "key": "recipientName", "label": "اسم المرسل إليه", "required": true },
+    { "key": "subject", "label": "الموضوع", "required": true },
+    { "key": "reason", "label": "سبب الإنذار", "required": true },
+    { "key": "deadline", "label": "الأجل", "required": false },
+    { "key": "date", "label": "التاريخ", "required": false }
+  ]
+}

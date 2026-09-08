@@ -1,0 +1,51 @@
+{
+  "name": "erp-juridique",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ERP juridique pour cabinets d'avocats marocains — Next.js fullstack",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node --dns-result-order=ipv4first --import tsx prisma/seed.ts",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@google/genai": "^1.5.0",
+    "@prisma/client": "^6.0.0",
+    "adm-zip": "^0.6.0",
+    "bcryptjs": "^2.4.3",
+    "docx": "^9.7.1",
+    "fontkit": "^2.0.4",
+    "framer-motion": "^12.42.2",
+    "jsonwebtoken": "^9.0.2",
+    "lottie-react": "^3.1.1",
+    "lucide-react": "^1.24.0",
+    "next": "^15.0.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/fontkit": "^2.0.9",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
