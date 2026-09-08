@@ -40,11 +40,10 @@ export const serviceAuthentification = {
     const jetonAcces = genererJetonAcces(payload);
     const jetonRafraichissement = genererJetonRafraichissement(payload);
 
-    await dossierUtilisateurRepository.mettreAJourJetonRafraichissement(
+    await dossierUtilisateurRepository.mettreAJourConnexion(
       utilisateur.id,
       jetonRafraichissement
     );
-    await dossierUtilisateurRepository.mettreAJourDerniereConnexion(utilisateur.id);
 
     return {
       utilisateur: {

@@ -7,10 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     exigerAuthentification(request);
     const templates = await prisma.caseTemplate.findMany({
-      include: {
-        documents: { orderBy: { ordre: "asc" } },
-        _count: { select: { cases: true } },
-      },
+      select: { id: true, nom: true },
       orderBy: { nom: "asc" },
     });
     return reponseSucces({ templates });

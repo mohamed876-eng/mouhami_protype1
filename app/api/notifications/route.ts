@@ -6,8 +6,10 @@ import { exigerAuthentification } from "@/infrastructure/middleware/authentifica
 export async function GET(request: NextRequest) {
   try {
     const user = exigerAuthentification(request);
-    const notifications = await dossierNotificationRepository.trouverParUserId(user.userId);
-    const unread = await dossierNotificationRepository.compterNonLues(user.userId);
+    const [notifications, unread] = await Promise.all([
+      dossierNotificationRepository.trouverParUserId(user.userId),
+      dossierNotificationRepository.compterNonLues(user.userId),
+    ]);
     return reponseSucces({ notifications, unread });
   } catch (error: unknown) {
     if (error instanceof NextResponse) return error;

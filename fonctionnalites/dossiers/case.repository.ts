@@ -40,6 +40,16 @@ export const dossierCaseRepository = {
     ]);
     return { cases, total };
   },
+  async trouverRecents(limite: number = 5) {
+    return prisma.case.findMany({
+      take: limite,
+      orderBy: { createdAt: "desc" },
+      include: {
+        client: { select: { id: true, nom: true, prenom: true, cin: true } },
+        _count: { select: { documents: true, hearings: true } },
+      },
+    });
+  },
   async trouverParId(id: string) {
     return prisma.case.findUnique({
       where: { id },

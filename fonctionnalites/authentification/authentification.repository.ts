@@ -7,6 +7,24 @@ export const dossierUtilisateurRepository = {
   async trouverParId(id: string) {
     return prisma.user.findUnique({ where: { id } });
   },
+  async trouverProfilParId(id: string) {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        nom: true,
+        prenom: true,
+        telephone: true,
+        role: true,
+        isActive: true,
+        clientId: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLogin: true,
+      },
+    });
+  },
   async creer(data: {
     email: string;
     password: string;
@@ -26,10 +44,10 @@ export const dossierUtilisateurRepository = {
       data: { refreshToken },
     });
   },
-  async mettreAJourDerniereConnexion(userId: string) {
+  async mettreAJourConnexion(userId: string, refreshToken: string) {
     return prisma.user.update({
       where: { id: userId },
-      data: { lastLogin: new Date() },
+      data: { refreshToken, lastLogin: new Date() },
     });
   },
   async mettreAJourMotDePasse(userId: string, nouveauMotDePasse: string) {

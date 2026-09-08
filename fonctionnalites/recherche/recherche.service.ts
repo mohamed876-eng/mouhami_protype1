@@ -30,6 +30,15 @@ export const serviceRecherche = {
             { profession: conditionsRecherche },
           ],
         },
+        select: {
+          id: true,
+          nom: true,
+          prenom: true,
+          cin: true,
+          telephone: true,
+          ville: true,
+          photo: true,
+        },
         take: limite,
         orderBy: { createdAt: "desc" },
       }),
@@ -49,11 +58,16 @@ export const serviceRecherche = {
             { caseType: { nameAr: conditionsRecherche } },
           ],
         },
+        select: {
+          id: true,
+          reference: true,
+          type: true,
+          tribunal: true,
+          etat: true,
+          client: { select: { id: true, nom: true, prenom: true } },
+        },
         take: limite,
         orderBy: { createdAt: "desc" },
-        include: {
-          client: { select: { nom: true, prenom: true } },
-        },
       }),
 
       prisma.document.findMany({
@@ -66,11 +80,15 @@ export const serviceRecherche = {
             { commentaires: conditionsRecherche },
           ],
         },
-        take: limite,
-        orderBy: { uploadedAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          nom: true,
+          description: true,
+          uploadedAt: true,
           cas: { select: { reference: true } },
         },
+        take: limite,
+        orderBy: { uploadedAt: "desc" },
       }),
 
       prisma.caseType.findMany({
@@ -80,9 +98,13 @@ export const serviceRecherche = {
             { description: conditionsRecherche },
           ],
         },
+        select: {
+          id: true,
+          nameAr: true,
+          description: true,
+        },
         take: limite,
         orderBy: { nameAr: "asc" },
-        include: { _count: { select: { cases: true } } },
       }),
     ]);
 

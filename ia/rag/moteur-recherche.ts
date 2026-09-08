@@ -39,6 +39,10 @@ export interface ResultatRecherche {
 export class MoteurRechercheVectorielle {
   private cheminCollection: string;
   private cheminIndex: string;
+  private cacheEntrees: EntreeChunk[] | null = null;
+  private signatureEntrees: string = "";
+  private cacheIndex: IndexInverse | null = null;
+  private signatureIndex: string = "";
 
   constructor() {
     if (!fs.existsSync(REPERTOIRE_STOCKAGE)) {
@@ -162,6 +166,7 @@ export class MoteurRechercheVectorielle {
   vider(): void {
     if (fs.existsSync(this.cheminCollection)) fs.unlinkSync(this.cheminCollection);
     if (fs.existsSync(this.cheminIndex)) fs.unlinkSync(this.cheminIndex);
+    this.invaliderCaches();
   }
 
   documentsIndexes(): string[] {
@@ -249,9 +254,18 @@ export class MoteurRechercheVectorielle {
   }
 
   private chargerIndex(): IndexInverse {
+    if (
+      this.cacheIndex !== null &&
+      this.signatureFichier(this.cheminIndex) === this.signatureIndex
+    ) {
+      return this.cacheIndex;
+    }
     if (!fs.existsSync(this.cheminIndex)) return {};
     try {
-      return JSON.parse(fs.readFileSync(this.cheminIndex, "utf-8"));
+      const index = JSON.parse(fs.readFileSync(this.cheminIndex, "utf-8"));
+      this.cacheIndex = index;
+      this.signatureIndex = this.signatureFichier(this.cheminIndex);
+      return index;
     } catch {
       return {};
     }
@@ -260,12 +274,23 @@ export class MoteurRechercheVectorielle {
   private sauvegarderIndex(index?: IndexInverse): void {
     if (!index) index = this.chargerIndex();
     fs.writeFileSync(this.cheminIndex, JSON.stringify(index));
+    this.cacheIndex = index;
+    this.signatureIndex = this.signatureFichier(this.cheminIndex);
   }
 
   private chargerTout(): EntreeChunk[] {
+    if (
+      this.cacheEntrees !== null &&
+      this.signatureFichier(this.cheminCollection) === this.signatureEntrees
+    ) {
+      return this.cacheEntrees;
+    }
     if (!fs.existsSync(this.cheminCollection)) return [];
     try {
-      return JSON.parse(fs.readFileSync(this.cheminCollection, "utf-8"));
+      const entrees = JSON.parse(fs.readFileSync(this.cheminCollection, "utf-8"));
+      this.cacheEntrees = entrees;
+      this.signatureEntrees = this.signatureFichier(this.cheminCollection);
+      return entrees;
     } catch {
       return [];
     }
@@ -273,6 +298,24 @@ export class MoteurRechercheVectorielle {
 
   private sauvegarderTout(entrees: EntreeChunk[]): void {
     fs.writeFileSync(this.cheminCollection, JSON.stringify(entrees, null, 2));
+    this.cacheEntrees = entrees;
+    this.signatureEntrees = this.signatureFichier(this.cheminCollection);
+  }
+
+  private signatureFichier(chemin: string): string {
+    try {
+      const stat = fs.statSync(chemin);
+      return `${stat.mtimeMs}:${stat.size}`;
+    } catch {
+      return "";
+    }
+  }
+
+  private invaliderCaches(): void {
+    this.cacheEntrees = null;
+    this.cacheIndex = null;
+    this.signatureEntrees = "";
+    this.signatureIndex = "";
   }
 }
 
