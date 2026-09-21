@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 import { exigerAuthentification } from "@/infrastructure/middleware/authentification";
 import { serviceRechercheJuridique } from "@/ia/rag/service-recherche-juridique";
+import {
+  fournisseurGemini,
+  MODELE_DEFAUT,
+} from "@/ia/fournisseurs/gemini-provider";
 
-const MODELE_DEFAUT = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Heartbeat SSE : maintient la connexion vivante et rassure le client pendant
+// la phase de « réflexion » du modèle (le premier token peut prendre ~20-30 s).
+const INTERVAL_HEARTBEAT_MS = 15000;
+
+/** Traduit l'erreur du fournisseur en message utilisateur arabe. */
+function traduireErreurIA(erreur: any): string {
+  const code = erreur?.code ?? 0;
+  const retardable = !!erreur?.retardable;
+
+  // 429 = quota / rate-limit, 8 = RESOURCE_EXHAUSTED (gRPC)
+  if (code === 429 || code === 8) {
+    return "عدد كبير من الاستفسارات في وقت قصير. انتظر قليلاً ثم أعد المحاولة.";
+  }
+  // Erreurs transitoires (5xx, timeout, serveur saturé) : réessayable
+  if (retardable) {
+    return "تعذر الاتصال بالمساعد حالياً. أعد المحاولة بعد لحظات.";
+  }
+  // Clé/modèle invalide ou erreur inconnue : problème de configuration
+  return "مشكلة في خدمة الذكاء الاصطناعي، يرجى المحاولة لاحقاً.";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +41,21 @@ export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        let heartbeat: ReturnType<typeof setInterval> | null = null;
+        const armerHeartbeat = () => {
+          heartbeat = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode(`: ping\n\n`));
+            } catch {
+              // flux déjà fermé
+            }
+          }, INTERVAL_HEARTBEAT_MS);
+        };
+        const couperHeartbeat = () => {
+          if (heartbeat) clearInterval(heartbeat);
+          heartbeat = null;
+        };
+
         try {
           const { sources, promptComplet } =
             serviceRechercheJuridique.rechercherSources(question.trim());
@@ -57,18 +94,11 @@ export async function POST(request: NextRequest) {
 
           let fullAnswer = "";
           try {
-            const cleApi = process.env.GEMINI_API_KEY;
-            if (!cleApi) throw new Error("GEMINI_API_KEY non définie");
-
-            const client = new GoogleGenAI({ apiKey: cleApi });
-            const streamRes = await client.models.generateContentStream({
-              model: MODELE_DEFAUT,
-              contents: promptComplet,
-              config: { temperature: 0.1 },
-            });
-
-            for await (const chunk of streamRes) {
-              const token = chunk.text || "";
+            armerHeartbeat();
+            for await (const token of fournisseurGemini.genererEnStream(
+              promptComplet,
+              { temperature: 0.1, modele: MODELE_DEFAUT }
+            )) {
               if (token) {
                 fullAnswer += token;
                 controller.enqueue(
@@ -76,11 +106,16 @@ export async function POST(request: NextRequest) {
                 );
               }
             }
-          } catch {
-            fullAnswer = "تعذر الاتصال بالمساعد.";
+            couperHeartbeat();
+          } catch (erreurAI: any) {
+            couperHeartbeat();
+            if (process.env.NODE_ENV === "development") {
+              console.error("[legal-search] Erreur IA:", erreurAI?.message);
+            }
+            fullAnswer = traduireErreurIA(erreurAI);
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ token: fullAnswer })}\n\n`
+                `data: ${JSON.stringify({ token: fullAnswer, iaError: true })}\n\n`
               )
             );
           }
@@ -92,6 +127,10 @@ export async function POST(request: NextRequest) {
           );
           controller.close();
         } catch (err: any) {
+          couperHeartbeat();
+          if (process.env.NODE_ENV === "development") {
+            console.error("[legal-search] Erreur flux:", err?.message);
+          }
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({

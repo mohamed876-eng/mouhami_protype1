@@ -9,6 +9,12 @@ import { transitionStore } from "@/lib/transitionStore";
 // `transitionStore` est actif : l'animation n'est retirée QUE lorsque la page
 // suivante (dashboard) a chargé ses données et appelle transitionStore.finish().
 // L'animation est ralentie (speed 0.5) et boucle doucement en attendant.
+//
+// Rendu élastique, pleine page : la scène (800×600) est dessinée avec
+// `preserveAspectRatio="xMidYMid slice"` sur TOUT l'écran (100vw × 100vh).
+// Le logo reste centré, la page est entièrement recouverte, et l'animation
+// suit chaque redimensionnement du navigateur (aucune valeur en pixels fixe,
+// aucun zoom figé).
 export default function LoginTransitionAnimation() {
   const [visible, setVisible] = useState(false);
   const [fading, setFading] = useState(false);
@@ -76,7 +82,10 @@ export default function LoginTransitionAnimation() {
           }}
         />
 
-        <div className="relative w-screen h-screen">
+        {/* Logo Lottie : rendu « slice » sur TOUTE la page → le contenu reste
+            centré (xMidYMid) et couvre l'intégralité du viewport, quel que
+            soit le format de l'écran. */}
+        <div className="relative h-full w-full overflow-hidden">
           <Lottie
             src={logoAnimation}
             lottieRef={lottieRef}

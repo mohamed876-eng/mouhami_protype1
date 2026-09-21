@@ -5,6 +5,10 @@ export interface SourceResultat {
   score: number;
 }
 
+// Plafond par source : on n'envoie que le début de chaque page retenue pour
+// ne pas gonfler le contexte et accélérer le premier token (prefill réduit).
+const MAX_TEXTE_SOURCE = 1800;
+
 export class ConstructeurPrompt {
   construirePromptSysteme(): string {
     return [
@@ -31,10 +35,13 @@ export class ConstructeurPrompt {
     }
 
     const contexte = sources
-      .map(
-        (s, i) =>
-          `[المصدر ${i + 1}]\nالوثيقة: ${s.nomDocument} (صفحة ${s.numeroPage})\nالنص:\n${s.texte}`
-      )
+      .map((s, i) => {
+        const texteSource =
+          s.texte.length > MAX_TEXTE_SOURCE
+            ? s.texte.slice(0, MAX_TEXTE_SOURCE)
+            : s.texte;
+        return `[المصدر ${i + 1}]\nالوثيقة: ${s.nomDocument} (صفحة ${s.numeroPage})\nالنص:\n${texteSource}`;
+      })
       .join("\n\n---\n\n");
 
     return [

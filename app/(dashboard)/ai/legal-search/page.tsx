@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, apiService } from "@/lib/api";
 import IconeAnimee from "@/components/ui/IconeAnimee";
 import { lottieSearch } from "@/components/lottie";
 
@@ -20,9 +20,16 @@ interface Source {
   articles: ArticleRef[];
 }
 
+type PhaseRecherche =
+  | "idle"
+  | "sources"
+  | "ia"
+  | "erreur";
+
 export default function LegalSearchPage() {
   const [question, setQuestion] = useState("");
   const [searching, setSearching] = useState(false);
+  const [phase, setPhase] = useState<PhaseRecherche>("idle");
   const [sources, setSources] = useState<Source[] | null>(null);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -32,38 +39,40 @@ export default function LegalSearchPage() {
     e.preventDefault();
     if (!question.trim() || searching) return;
 
+    await lancerRecherche(question.trim());
+  };
+
+  const lancerRecherche = async (
+    questionATtraiter: string,
+    force?: boolean
+  ) => {
+    if (!force && searching) return;
+
     setSearching(true);
     setError("");
     setSources(null);
     setAnswer("");
+    setPhase("sources");
 
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    try {
+    const lireFlux = async (signal: AbortSignal): Promise<{ ok: boolean; statut?: number }> => {
       const res = await fetch(`${API_BASE}/ai/legal-search`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "same-origin",
-        body: JSON.stringify({ question: question.trim() }),
-        signal: controller.signal,
+        body: JSON.stringify({ question: questionATtraiter }),
+        signal,
       });
 
-      if (!res.ok) {
-        setError("حدث خطأ أثناء البحث");
-        setSearching(false);
-        return;
-      }
+      if (!res.ok) return { ok: false, statut: res.status };
 
       const reader = res.body?.getReader();
-      if (!reader) {
-        setError("تعذر الاتصال بالخادم");
-        setSearching(false);
-        return;
-      }
+      if (!reader) return { ok: false, statut: 500 };
 
       const decoder = new TextDecoder();
       let buffer = "";
@@ -85,9 +94,14 @@ export default function LegalSearchPage() {
 
             if (data.sources) {
               setSources(data.sources);
+              // Les sources sont trouvées → le modèle commence à réfléchir.
+              setPhase("ia");
             }
 
-            if (data.token) {
+            if (data.iaError) {
+              setError(data.token || "حدث خطأ أثناء توليد الشرح");
+              setPhase("erreur");
+            } else if (data.token) {
               setAnswer((prev) => prev + data.token);
             }
 
@@ -99,9 +113,33 @@ export default function LegalSearchPage() {
           }
         }
       }
+      return { ok: true };
+    };
+
+    try {
+      const resultat = await lireFlux(controller.signal);
+
+      // Session expirée : tente un refresh du token puis relance une fois.
+      if (!resultat.ok && resultat.statut === 401) {
+        const refresh = await apiService.post("/authentification/refresh", undefined, {
+          requireAuth: false,
+        });
+        if (refresh.success) {
+          const nouvelle = await lireFlux(controller.signal);
+          if (!nouvelle.ok) setError("حدث خطأ أثناء البحث");
+        } else {
+          window.location.href = "/login";
+          return;
+        }
+      } else if (!resultat.ok) {
+        setError("حدث خطأ أثناء البحث");
+      }
+
+      setPhase((p) => (p === "erreur" ? "erreur" : "idle"));
     } catch (err: any) {
       if (err.name !== "AbortError") {
         setError("تعذر الاتصال بالخادم");
+        setPhase("erreur");
       }
     }
     setSearching(false);
@@ -132,9 +170,16 @@ export default function LegalSearchPage() {
               />
             </div>
 
-            {error && (
+            {error && phase === "erreur" && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
                 {error}
+                <button
+                  type="button"
+                  onClick={() => lancerRecherche(question.trim(), true)}
+                  className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-700"
+                >
+                  إعادة المحاولة
+                </button>
               </div>
             )}
 
@@ -159,7 +204,11 @@ export default function LegalSearchPage() {
                   <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
                   <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
                 </div>
-                <p>جاري البحث في المكتبة القانونية...</p>
+                <p>
+                  {phase === "sources"
+                    ? "جاري البحث في المصادر القانونية..."
+                    : "جاري إعداد الشرح... قد يستغرق الأمر قليلاً"}
+                </p>
               </div>
             ) : sources ? (
             <div className="space-y-6">
@@ -230,7 +279,7 @@ export default function LegalSearchPage() {
                   الشرح
                 </span>
                 <div className="text-secondary-700 leading-relaxed whitespace-pre-wrap">
-                  {answer || (searching ? <span className="text-secondary-400">جاري إنشاء الشرح...</span> : "")}
+                  {answer || (searching ? <span className="text-secondary-400">جاري إعداد الشرح... قد يتطلب أول جزء بعض الوقت</span> : "")}
                 </div>
               </div>
             </div>

@@ -18,7 +18,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthCard } from "@/components/ui/AuthCard";
 import {
   BUTTON_ZONES,
+  FINAL_FRAME,
   FORM_REVEAL_FRAME,
+  getPreserveAspectRatio,
   LOTTIE_SOURCE,
   PAUSE_FRAME,
   sceneToScreen,
@@ -41,6 +43,7 @@ export default function LoginPage() {
   const pauseReachedRef = useRef(false);
   const formRevealedRef = useRef(false);
   const loadErrorRef = useRef(false);
+  const currentFrameRef = useRef(0);
 
   // Taille du viewport → repositionne les zones de clic (responsive).
   useEffect(() => {
@@ -50,11 +53,30 @@ export default function LoginPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // L'animation démarre automatiquement depuis la frame 0.
+  // L'animation démarre automatiquement depuis la frame 0. Si un rendu a été
+  // recréé (rotation mobile → nouveau <Lottie key>), on restaure l'état réel :
+  //   - intro         → lecture depuis 0 (comportement initial)
+  //   - waiting       → gel à PAUSE_FRAME (pilules cliquables, pas de rejeu)
+  //   - continuing    → reprise à la dernière frame vue (timeline préservée)
+  //   - finished      → pose directement sur la fin
   const handleReady = useCallback(() => {
     const anim = lottieRef.current;
     if (!anim) return;
     anim.setSpeed(1);
+    if (phaseRef.current === "waiting") {
+      anim.seek(PAUSE_FRAME);
+      anim.pause();
+      return;
+    }
+    if (phaseRef.current === "continuing") {
+      anim.play();
+      return;
+    }
+    if (phaseRef.current === "finished") {
+      anim.seek(currentFrameRef.current || FINAL_FRAME);
+      anim.play();
+      return;
+    }
     anim.seek(0);
     anim.play();
   }, []);
@@ -65,6 +87,7 @@ export default function LoginPage() {
     const raw = (event as { currentFrame?: number }).currentFrame;
     const frame = typeof raw === "number" ? raw : 0;
     const anim = lottieRef.current;
+    currentFrameRef.current = frame;
 
     if (!pauseReachedRef.current && phaseRef.current === "intro" && frame >= PAUSE_FRAME) {
       pauseReachedRef.current = true;
@@ -131,6 +154,12 @@ export default function LoginPage() {
   const activeMode = authMode ?? (loadError ? "signin" : null);
   const cardVisible = formRevealed || loadError;
 
+  // Fit adaptatif (slice paysage / meet-bas portrait). Le `key` force un
+  // re-rendu du Lottie quand l'orientation change (rotation mobile/pc) ;
+  // handleReady restaure alors l'état réel de la timeline.
+  const preserveAspectRatio = getPreserveAspectRatio(viewport);
+  const fitKey = `${preserveAspectRatio}`;
+
   const zones =
     phase === "waiting" && !authMode && !loadError && viewport.w > 0
       ? BUTTON_ZONES.map((zone) => {
@@ -160,12 +189,13 @@ export default function LoginPage() {
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         {!loadError && (
           <Lottie
+            key={fitKey}
             lottieRef={lottieRef}
             src={LOTTIE_SOURCE}
             autoplay={false}
             loop={false}
             renderer="svg"
-            rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+            rendererSettings={{ preserveAspectRatio }}
             subscriptions={{
               ready: handleReady,
               frame: handleFrame,
@@ -202,27 +232,32 @@ export default function LoginPage() {
         />
       ))}
 
-      {/* Carte #F4F0E8, calque indépendant, progressive et persistante. */}
+      {/* Carte #F4F0E8, calque indépendant, progressive et persistante.
+          Scrollable : si le formulaire dépasse l'écran (petite hauteur,
+          téléphone en paysage), on peut faire défiler la carte. */}
       {activeMode && (
-        <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
-          <div
-            className="pointer-events-auto transition-all duration-1000 ease-out will-change-[transform,opacity,filter]"
-            style={{
-              width: "min(560px, calc(100vw - 48px))",
-              opacity: cardVisible ? 1 : 0,
-              transform: cardVisible
-                ? "translateY(0) scale(1)"
-                : "translateY(20px) scale(0.97)",
-              filter: cardVisible ? "blur(0px)" : "blur(8px)",
-            }}
-          >
-            <AuthCard
-              mode={activeMode === "signin" ? "login" : "register"}
-              revealed={cardVisible}
-              login={login}
-              register={register}
-              onToggleMode={toggleMode}
-            />
+        <div className="pointer-events-none fixed inset-0 z-30 overflow-y-auto">
+          <div className="pointer-events-none min-h-full flex items-center justify-center px-4 py-6">
+            <div
+              className="pointer-events-auto transition-all duration-1000 ease-out will-change-[transform,opacity,filter]"
+              style={{
+                width: "min(560px, calc(100vw - 48px))",
+                maxWidth: "100%",
+                opacity: cardVisible ? 1 : 0,
+                transform: cardVisible
+                  ? "translateY(0) scale(1)"
+                  : "translateY(20px) scale(0.97)",
+                filter: cardVisible ? "blur(0px)" : "blur(8px)",
+              }}
+            >
+              <AuthCard
+                mode={activeMode === "signin" ? "login" : "register"}
+                revealed={cardVisible}
+                login={login}
+                register={register}
+                onToggleMode={toggleMode}
+              />
+            </div>
           </div>
         </div>
       )}

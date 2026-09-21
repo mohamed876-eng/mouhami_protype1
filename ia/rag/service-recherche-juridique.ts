@@ -22,7 +22,7 @@ export class ServiceRechercheJuridique {
     sources: SourceSortie[];
     promptComplet: string;
   } {
-    const resultats = moteurRecherche.rechercher(question, 5);
+    const resultats = moteurRecherche.rechercher(question, 4);
 
     if (resultats.length === 0) {
       return { sources: [], promptComplet: "" };

@@ -74,6 +74,10 @@ export function useAuth() {
         setAuthTokens(result.data.accessToken, result.data.refreshToken);
         setStoredUser(result.data.user);
         setUser(result.data.user);
+
+        // Même transition Lottie qu'après un login : l'overlay reste affiché
+        // tant que le dashboard n'a pas chargé ses données.
+        transitionStore.start();
         router.push("/dashboard");
         return { success: true };
       }

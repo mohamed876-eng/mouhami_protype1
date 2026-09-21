@@ -71,12 +71,43 @@ export interface ViewportSize {
 }
 
 /**
- * Mappe un point de la scène (2000×1080) vers l'écran pour un rendu
- * « slice » centré (preserveAspectRatio = xMidYMid slice) : l'animation
- * remplit tout l'écran en rognant le surplus, ce qui aligne les zones de
- * clic avec les pilules.
+ * Seuil de bascule paysage ↔ portrait. On considère l'écran comme « portrait »
+ * dès que la hauteur dépasse la largeur (téléphone, tablette en portrait).
+ * Modifiable pour aller chercher un comportement particulier selon l'appareil.
+ */
+export const PORTRAIT_THRESHOLD = 1;
+
+/** Vrai quand l'écran est en orientation portrait (h > w). */
+export function isPortraitViewport(viewport: ViewportSize) {
+  return viewport.h > viewport.w * PORTRAIT_THRESHOLD;
+}
+
+/**
+ * Stratégie de rendu selon l'orientation :
+ *   - paysage → « xMidYMid slice » : l'animation remplit tout l'écran en
+ *     rognant le surplus (expérience cinématique actuelle).
+ *   - portrait → « xMidYMax meet » : toute la scène est visible, ancrée EN
+ *     BAS de l'écran (pilules à portée du pouce). Le fond #F4F0E8 de la
+ *     scène = fond de la page → aucune couture de « letterbox » visible.
+ */
+export function getPreserveAspectRatio(viewport: ViewportSize) {
+  return isPortraitViewport(viewport) ? "xMidYMax meet" : "xMidYMid slice";
+}
+
+/**
+ * Mappe un point de la scène (2000×1080) vers l'écran en suivant EXACTEMENT
+ * le même fit que getPreserveAspectRatio : les zones de clic restent toujours
+ * alignées sur les pilules dessinées dans l'animation, quel que soit l'écran.
  */
 export function sceneToScreen(sx: number, sy: number, viewport: ViewportSize) {
+  if (isPortraitViewport(viewport)) {
+    // meet ancré en bas : toute la scène est visible, collée au bas.
+    const scale = Math.min(viewport.w / SCENE_W, viewport.h / SCENE_H);
+    const offsetX = (viewport.w - SCENE_W * scale) / 2;
+    const offsetY = viewport.h - SCENE_H * scale;
+    return { x: offsetX + sx * scale, y: offsetY + sy * scale, scale };
+  }
+  // slice centré : remplit l'écran en rognant le surplus.
   const scale = Math.max(viewport.w / SCENE_W, viewport.h / SCENE_H);
   const offsetX = (viewport.w - SCENE_W * scale) / 2;
   const offsetY = (viewport.h - SCENE_H * scale) / 2;

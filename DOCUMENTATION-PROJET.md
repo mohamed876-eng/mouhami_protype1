@@ -40,7 +40,7 @@
   - Espace **admin / cabinet** (sous `/app/(dashboard)/`) : dossiers, clients, audiences, documents, types de dossiers, rappels, recherche juridique IA, générateur de documents.
   - Espace **client** (sous `/app/(client)/`) : consultation des dossiers, documents visibles, profil.
 - **Authentification :** JWT (accès + rafraîchissement) stockés en cookies `httpOnly`, rotation des refresh tokens, anti-bruteforce par IP.
-- **IA :** Google Gemini (`gemini-2.5-flash`) utilisé pour la génération de documents juridiques DOCX et la recherche juridique RAG (index inversé TF-IDF sur une bibliothèque arabe).
+- **IA :** Google Gemini (modèle **configurable** via `GEMINI_MODEL`, défaut `gemini-2.5-flash`) utilisé pour la génération de documents juridiques DOCX et la recherche juridique RAG (index inversé TF-IDF sur une bibliothèque arabe). Appels **durcis** : retries sur erreurs transitoires, timeouts, streaming robuste.
 - **Persistance :** PostgreSQL via Prisma, base hébergée sur **Neon** (serveur managé).
 
 ### 1.1 Scripts (package.json)
@@ -189,8 +189,8 @@ Page React (app/) ──> Hook (hooks/) ──> lib/api.ts (fetch wrapper)
 
 | Fichier | Rôle |
 |---|---|
-| `page.tsx` | Page de connexion « cinématique » : animation Lottie plein écran, machine à états `intro → waiting → continuing → finished`, deux zones de clic (connexion/inscription), carte `AuthCard` révélée à un frame précis. |
-| `lottieConfig.ts` | Config centralisée de l'animation : sources, frames (`PAUSE_FRAME=180`, `FORM_REVEAL_FRAME=230`, `FINAL_FRAME=324`), types `AuthMode`/`AnimationPhase`, mappage scène→écran. |
+| `page.tsx` | Page de connexion « cinématique » : animation Lottie plein écran, machine à états `intro → waiting → continuing → finished`, deux zones de clic (connexion/inscription), carte `AuthCard` révélée à un frame précis. **Responsive** : restaure l'état réel de la timeline quand la vue est recréée (rotation mobile), zones de clic adaptatives (hit-area ≥ 44px), carte scrollable sur petits écrans. |
+| `lottieConfig.ts` | Config centralisée de l'animation : sources, frames (`PAUSE_FRAME=180`, `FORM_REVEAL_FRAME=230`, `FINAL_FRAME=324`), types `AuthMode`/`AnimationPhase`, **`sceneToScreen`** (mappage scène→écran) et **`getPreserveAspectRatio`** (slice paysage / meet ancré bas portrait). |
 | `loading.tsx` | Skeleton de route (loading state). |
 
 #### Espace admin — `app/(dashboard)/`
@@ -214,7 +214,7 @@ Layout : garde-fou `isAuthenticated()`/`isAdmin()` → redirections ; `<PageBack
 | `documents/types/page.tsx` | CRUD types de documents (nom, slug). | `apiService` |
 | `ai/page.tsx` | Page porte « منشئ المستندات » → CTA vers `/ai/generator`. | — |
 | `ai/generator/page.tsx` | Générateur : choix du modèle → `GET /ai/templates/[type]` → saisie des champs → `POST /ai/generate` → téléchargement DOCX (base64→Blob). | `apiService` |
-| `ai/legal-search/page.tsx` | Recherche RAG : `fetch` natif SSE vers `POST /api/ai/legal-search`, lecture du stream (`data:`), sources/articles, cumul des tokens, bouton d'abandon (AbortController). | `fetch` + états locaux |
+| `ai/legal-search/page.tsx` | Recherche RAG : `fetch` natif SSE vers `POST /api/ai/legal-search`, lecture du stream (`data:`), sources/articles, cumul des tokens, bouton d'abandon (AbortController), **statuts de phases, bouton réessayer, refresh auto sur 401**. | `fetch` + états locaux |
 | `settings/page.tsx` | Paramètres cabinet (5 champs `cabinet_*`). | `GET/PUT /settings` |
 
 Fichiers transverses : `layout.tsx`, `loading.tsx`, `error.tsx`.
@@ -384,7 +384,7 @@ Chaque module suit le modèle **service** + **repository** (certains modules son
 
 | Hook | État / API | Endpoints |
 |---|---|---|
-| `useAuth` | `user`, `loading` ; `login`, `register`, `logout`, `isAuthenticated`, `isAdmin`. Login → cookies + store user + transition. | `/authentification/*` (`requireAuth:false`) |
+| `useAuth` | `user`, `loading` ; `login`, `register`, `logout`, `isAuthenticated`, `isAdmin`. Login **et register** → cookies + store user + **transition** (`transitionStore.start()`). | `/authentification/*` (`requireAuth:false`) |
 | `useCases` | `cases`, `caseData`, `pagination`, `loading`, `error` ; CRUD + `toggleChecklist` + `exportPDF`. Pas de polling. | `/dossiers*` |
 | `useCaseTypes` | `types`, `loading`, `error` ; CRUD types + documents obligatoires. | `/types-de-dossier*` |
 | `useClients` | `clients`, `client`, `pagination`, `loading`, `error` ; CRUD. | `/clients*` |
@@ -404,7 +404,7 @@ Chaque module suit le modèle **service** + **repository** (certains modules son
 | `ui/Badge.tsx` | Pastille colorée via `getStatusColor(text)`. |
 | `ui/DataTable.tsx` | Tableau générique (`columns: {key,label,render?}[]`), états vide/chargement. |
 | `ui/IconeAnimee.tsx` | Wrapper Lottie (replit au hover/click, posé sur dernière frame). |
-| `ui/LoginTransitionAnimation.tsx` | Overlay plein écran (z-9999) piloté par `transitionStore`. |
+| `ui/LoginTransitionAnimation.tsx` | Overlay plein écran (z-9999, `fixed inset-0`) piloté par `transitionStore`. Logo Lottie **centralisé et couvrant tout le viewport** (`preserveAspectRatio="xMidYMid slice"`, dimensions 100 % en unités de vue, **aucune valeur en pixels** → élastique à chaque redimensionnement du navigateur, sans zoom figé). |
 | `ui/LogoMouhami.tsx` | Logo Lottie statique, rejoue au hover. |
 | `ui/Modal.tsx` | Modale générique (`size=sm|md|lg`), bloque le scroll du body. |
 | `ui/PageBackground.tsx` | Fond fixe `bgpages.png`. |
@@ -438,7 +438,7 @@ Chaque module suit le modèle **service** + **repository** (certains modules son
 | Fichier | Rôle |
 |---|---|
 | `llm-provider.ts` | **Interface** `FournisseurLLM` : `genererTexte(prompt, options?)`, `estDisponible()` ; type `OptionsGeneration` (temperature, modele, maxTokens). |
-| `gemini-provider.ts` | `FournisseurGemini` (singleton `fournisseurGemini`) : SDK `@google/genai`, modèle `GEMINI_MODEL` (défaut `gemini-2.5-flash`), température 0.3, client init en lazy. |
+| `gemini-provider.ts` | `FournisseurGemini` (singleton `fournisseurGemini`, SDK `@google/genai`) : modèle unique exporté **`MODELE_DEFAUT`** (via `GEMINI_MODEL`, défaut `gemini-2.5-flash`) centralisé pour les réponses ET le streaming. **Résilience** : retries (3, backoff 0,5s→1s→2s) sur erreurs transitoires (429, 5xx, deadline, resource exhausted, **pannes réseau** fetch/socket), timeout génération 60 s / stall stream 30 s, budget de réflexion réduit (512) sur modèles « thinking », `maxOutputTokens` 1500, erreurs normalisées `{code, retardable, message}`, génération **streaming** `genererEnStream`. |
 
 #### `moteur-documents/` (génération DOCX)
 
@@ -453,9 +453,9 @@ Chaque module suit le modèle **service** + **repository** (certains modules son
 
 | Fichier | Rôle |
 |---|---|
-| `construction-contexte.ts` | `ConstructeurPrompt` : prompt **système** (assistant juridique marocain, ne pas inventer, citer les textes) + prompt **utilisateur** (question + sources numérotées avec page). |
-| `rag/moteur-recherche.ts` | `MoteurRechercheVectorielle` : **index inversé TF-IDF** persistant (`ai_data/legal_search/library.json` + `index.json`), tokenisation arabe normalisée (alef/ta marbuta/kashida, préfixe « ال »), mots d'arrêt arabes, scoring normalisé, **cache mémoire invalidé par signature (mtime+size)**. |
-| `rag/service-recherche-juridique.ts` | `ServiceRechercheJuridique` : `rechercherSources(question)` → top 5 chunks → **fusion par page** (garde le plus long) → **extraction des articles juridiques** (الكتاب/القسم/الباب/الفرع/المادة/الفصل avec contexte hiérarchique) → prompt complet. `genererReponse` → Gemini (température 0.1). |
+| `construction-contexte.ts` | `ConstructeurPrompt` : prompt **système** (assistant juridique marocain, ne pas inventer, citer les textes) + prompt **utilisateur** (question + sources numérotées avec page). Chaque source est **tronquée à 1800 caractères** (`MAX_TEXTE_SOURCE`) pour alléger le contexte et accélérer le premier token. |
+| `rag/moteur-recherche.ts` | `MoteurRechercheVectorielle` : **index inversé TF-IDF** persistant (`ai_data/legal_search/library.json` + `index.json`), cache mémoire invalidé par signature (mtime+size), **`initialiser()`** préchauffe les caches au boot. **Normalisation arabe versionnée** (`VERSION_NORMALISATION=2`) : suppression des diacritiques (NFKD), unification des hamzas (`أإآ→ا`, `ؤ→و`, `ئ→ي`), `ى→ي`, `ة→ه`, tatweel, **formes défixées** (retrait des préfixes `وال/بال/فال/كال/لل/ال/و/ب/ف/ل/ك`), **synonymes juridiques** (طلاق/تطليق, ارث/ميراث/تركه, محكمه/محاكم, دعوي/دعاوي/دعوا, عقد/عقود, قاصر/صغير), **n-grammes de 3 caractères** (clé `#3:`) pour tolérer formes fléchies/OCR. **Classifieur de référentiel** (`REFERENTIELS` + `coefficientsDocuments`) : les mots-signaux du code visé boostent son score → meilleure discrimination quand la question n'utilise que des mots génériques (الأحكام، النهائية…). **Ré-indexation automatique** au démarrage si `meta.normalisationVersion` a changé. |
+| `rag/service-recherche-juridique.ts` | `ServiceRechercheJuridique` : `rechercherSources(question)` → **top 4** chunks → **fusion par page** (garde le plus long) → **extraction des articles juridiques** (الكتاب/القسم/الباب/الفرع/المادة/الفصل avec contexte hiérarchique) → prompt complet. `genererReponse` → Gemini (température 0.1). |
 
 ---
 
@@ -629,14 +629,19 @@ Page /ai/generator → GET /ai/templates/{type} (méta JSON) → saisie des cham
 ```
 POST { question }
   → serviceRechercheJuridique.rechercherSources(question)
-      1. moteurRecherche.rechercher(question, topK=5)   (index inversé TF-IDF arabe)
+      1. moteurRecherche.rechercher(question, topK=4)
+           (index inversé TF-IDF arabe : normalisation v2, défixion, synonymes,
+            3-grammes, classifieur de référentiel)
       2. fusion des chunks d'une même page (keep le plus long)
       3. extraction des articles (كتاب/قسم/باب/فرع/مادة/فصل)
-      4. construction du prompt (système + utilisateur avec sources)
-  → streaming Gemini (température 0.1) : events `sources`, `token`, `answer`, `done`
+      4. construction du prompt (système + utilisateur, sources tronquées 1800 car.)
+  → streaming Gemini robuste (température 0.1, retries/timeouts) :
+      events SSE `sources`, `token`, `answer`, `done`
+      + heartbeat `: ping` (15 s) pendant la phase de réflexion du modèle
+      + erreurs IA traduites en arabe (`traduireErreurIA`)
 ```
 
-**Stockage RAG :** `ai_data/legal_search/{library.json, index.json}` (JSON sur disque). Le moteur de recherche est un **index inversé** avec tokenisation arabe normalisée et cache mémoire invalidé par `mtime+size`.
+**Stockage RAG :** `ai_data/legal_search/{library.json, index.json, meta.json}` (JSON sur disque). Le moteur est un **index inversé** avec normalisation arabe **versionnée** (diacritiques, hamzas, `ى→ي`, `ة→ه`, défixion), synonymes juridiques, n-grammes de 3 caractères et cache mémoire invalidé par `mtime+size`. **Ré-indexation automatique** au boot quand `meta.normalisationVersion` diffère de la version du code (fini les `JSON.parse` de plusieurs Mo dans les handlers). Le **classifieur de référentiel** associe les mots-signaux de chaque code (مدونة الأسرة، المسطرة المدنية، المسطرة الجنائية، الالتزامات والعقود) à un bonus de score : il corrige la confusion entre codes sur les questions à mots génériques (validé sur un jeu de 20 questions : 20/20 documents corrects).
 
 > Note : l'alimentation (`ajouterChunk`) est présente dans le moteur (`ai/rag/moteur-recherche.ts`) mais aucun endpoint d'ingestion n'expose l'ajout de chunks ; la bibliothèque est donc chargée via les fichiers JSON existants.
 
@@ -654,7 +659,7 @@ POST { question }
 | `JWT_EXPIRES_IN` | Durée access (défaut `15m`) |
 | `JWT_REFRESH_EXPIRES_IN` | Durée refresh (défaut `7d`) |
 | `GEMINI_API_KEY` | Clé API Google Gemini |
-| `GEMINI_MODEL` | Modèle par défaut (`gemini-2.5-flash`) |
+| `GEMINI_MODEL` | Modèle par défaut (défaut `gemini-2.5-flash`, configuré dans le projet) |
 | `UPLOAD_DIR` | Répertoire uploads (défaut `./uploads`) |
 | `MAX_FILE_SIZE` | Limite de taille de fichier (lecture côté upload) |
 | `PRISMA_CONNECTION_LIMIT` | Sur-preset du pool Prisma (défaut `4`) |
@@ -672,6 +677,8 @@ POST { question }
 6. **Consistance DB (prisma)** : `templateId`/`caseTypeId` dans `cases` sans `onDelete` → supprimer un modèle/type utilisé échoue (Restrict).
 7. **Polling simultané** : `useDashboard` (30 s) + `useReminders` (30 s) + `CountdownTimer` (1 s) peuvent tourner en même temps sur le dashboard.
 8. **Documents uploadés** : répertoire `uploads/` non versionné.
+9. **Quota Gemini Free Tier** : la clé active plafonne à **20 requêtes/jour** (`generate_content_free_tier_requests`, modèle `gemini-3.6-flash`) → les réponses échouent en 429 (`RESOURCE_EXHAUSTED`) passé ce quota, et la latence monte à 30–90 s. Les retries ne peuvent pas contourner un quota journalier : **passer à un compte Gemini payant** (même clé) lève la limite et la lenteur.
+10. **Score du classifieur RAG** : `REFERENTIELS` repose sur des mots-signaux codés en dur ; un vocabulaire nouveau/non couvert d'un code n'est pas boosté (le scoring TF-IDF reste le filet de sécurité).
 
 ---
 
@@ -984,8 +991,8 @@ sequenceDiagram
     A->>P: question "هل يمكن..."
     P->>R: POST { question } (fetch natif)
     R->>Sj: rechercherSources(question)
-    Sj->>M: rechercher(question, 5)
-    M-->>Sj: top 5 chunks (TF-IDF)
+    Sj->>M: rechercher(question, 4)
+    M-->>Sj: top 4 chunks (TF-IDF)
     Sj->>Sj: fusion par page + extraction articles
     Sj-->>R: { sources, promptComplet }
     R-->>P: SSE "data: sources"
@@ -997,4 +1004,4 @@ sequenceDiagram
 
 ---
 
-*Document généré à partir du code source réel (`/home/mohamed/Téléchargements/mouhami`), reflétant l'état actuel après optimisation des performances (pool Prisma, dashboard 10→5 requêtes, selects réduits, cache RAG).*
+*Document généré à partir du code source réel (`/home/mohamed/Téléchargements/mouhami`), reflétant l'état actuel après optimisation des performances (pool Prisma, dashboard 10→5 requêtes, selects réduits, cache RAG), **durcissement des appels Gemini** (retries/timeouts/streaming, modèle centralisé), **refonte de la normalisation RAG** (versionnée v2 : diacritiques, hamzas, défixion, synonymes, 3-grammes, classifieur de référentiel, ré-indexation auto) et **page de connexion + transition responsives** (zones adaptatives, carte scrollable, logo plein écran élastique).*
