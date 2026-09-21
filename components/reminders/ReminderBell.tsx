@@ -33,7 +33,7 @@ export default function ReminderBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={`relative w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-250 cursor-pointer ${
+        className={`relative w-11 h-11 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl flex items-center justify-center transition-all duration-250 cursor-pointer ${
           hasExpired
             ? "bg-red-50 hover:bg-red-100 animate-pulse"
             : "bg-[#F8FAFD] hover:bg-[#EAF2FF]"
@@ -51,7 +51,7 @@ export default function ReminderBell() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-80 bg-white rounded-card shadow-card border border-border z-30 overflow-hidden animate-scale-in">
+        <div className="absolute left-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-card shadow-card border border-border z-30 overflow-hidden animate-scale-in">
           <div className="p-4 border-b border-border">
             <p className="text-base font-bold text-[#0E2F6B]">التذكيرات</p>
           </div>

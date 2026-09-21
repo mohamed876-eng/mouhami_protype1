@@ -59,8 +59,8 @@ export default function NewClientPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-secondary-200 p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-secondary-200 p-4 sm:p-6 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">
               الاسم الشخصي *
@@ -89,7 +89,7 @@ export default function NewClientPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">
               CIN *
@@ -118,7 +118,7 @@ export default function NewClientPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">
               البريد الإلكتروني

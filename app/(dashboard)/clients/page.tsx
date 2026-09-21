@@ -104,12 +104,12 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
             <IconeAnimee icone={lottieClients} taille={42} title="العملاء" />
           </div>
-          <h1 className="text-3xl text-primary-500">العملاء</h1>
+          <h1 className="text-2xl sm:text-3xl text-primary-500">العملاء</h1>
         </div>
         <Link
           href="/clients/new"

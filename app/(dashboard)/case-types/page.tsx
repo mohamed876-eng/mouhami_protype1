@@ -85,12 +85,12 @@ export default function CaseTypesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
             <IconeAnimee icone={lottieJustice} taille={45} title="أنواع القضايا" />
           </div>
-          <h1 className="text-3xl text-primary-500">أنواع القضايا</h1>
+          <h1 className="text-2xl sm:text-3xl text-primary-500">أنواع القضايا</h1>
         </div>
         <button
           onClick={openCreateType}
@@ -113,12 +113,12 @@ export default function CaseTypesPage() {
         <div className="space-y-4">
           {types.map((type) => (
             <div key={type.id} className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
-              <div className="flex items-center justify-between p-4 bg-secondary-50 border-b border-secondary-200">
-                <div>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-secondary-50 border-b border-secondary-200">
+                <div className="min-w-0">
                   <h3 className="font-semibold">{type.nameAr}</h3>
                   {type.description && <p className="text-xs text-secondary-400">{type.description}</p>}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className="text-xs text-secondary-400">{type._count?.cases || 0} ملفات</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${type.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                     {type.isActive ? "نشط" : "غير نشط"}

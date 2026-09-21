@@ -183,23 +183,23 @@ export default function DashboardPage() {
     >
       {/* ====== Hero / Accueil + Recherche ====== */}
       <motion.div variants={item}>
-        <div className="bg-white rounded-card shadow-card p-8 md:p-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="bg-white rounded-card shadow-card p-5 sm:p-6 md:p-8 lg:p-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
             {/* Bloc de bienvenue */}
-            <div className="flex items-center gap-5">
-              <div className="w-24 h-24 rounded-2xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-4 sm:gap-5">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
                 <IconeAnimee icone={icones.justice} taille={tailles.hero} />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-[#0E2F6B] mb-1">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#0E2F6B] mb-1 truncate">
                   مرحباً، {user?.prenom} {user?.nom}
                 </h1>
-                <p className="text-base text-[#6B7280] mt-0.5">نظرة عامة على نشاط المكتب</p>
+                <p className="text-sm sm:text-base text-[#6B7280] mt-0.5">نظرة عامة على نشاط المكتب</p>
               </div>
             </div>
 
             {/* Barre de recherche élargie */}
-            <form onSubmit={handleSearch} className="relative w-full md:w-[600px] lg:w-[800px] xl:w-[960px]">
+            <form onSubmit={handleSearch} className="relative w-full min-w-0 flex-1">
               <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
                 <IconeAnimee
                   icone={icones.recherche}
@@ -212,7 +212,7 @@ export default function DashboardPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث عن ملف، عميل، رقم الملف، CIN، المحكمة، المرجع أو كلمة مفتاحية..."
-                className="w-full pr-[90px] pl-6 h-[90px] bg-[#F8FAFD] border border-border rounded-2xl text-lg text-[#0E2F6B] placeholder-[#9AA6B8] shadow-sm focus:outline-none focus:border-[#0F3D91]/40 focus:bg-white transition-all"
+                className="w-full pr-[70px] sm:pr-[90px] pl-4 sm:pl-6 h-14 sm:h-[70px] lg:h-[90px] bg-[#F8FAFD] border border-border rounded-2xl text-base sm:text-lg text-[#0E2F6B] placeholder-[#9AA6B8] shadow-sm focus:outline-none focus:border-[#0F3D91]/40 focus:bg-white transition-all"
               />
             </form>
           </div>
@@ -228,16 +228,16 @@ export default function DashboardPage() {
           <Link
             key={r.href}
             href={r.href}
-            className="group bg-white rounded-card shadow-card p-6 flex items-center gap-5 hover:bg-[#EAF2FF]/40 transition-all duration-250 hover:-translate-y-0.5 hover:shadow-card-hover"
+            className="group bg-white rounded-card shadow-card p-4 sm:p-6 flex items-center gap-3 sm:gap-5 hover:bg-[#EAF2FF]/40 transition-all duration-250 hover:-translate-y-0.5 hover:shadow-card-hover"
           >
-            <div className="w-24 h-24 rounded-2xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
               <IconeAnimee icone={r.icone} taille={tailles.carte} />
             </div>
-            <div>
-              <p className="text-lg font-bold text-[#0E2F6B] group-hover:text-[#0F3D91] transition-colors">
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-[#0E2F6B] group-hover:text-[#0F3D91] transition-colors">
                 {r.label}
               </p>
-              <p className="text-sm text-[#6B7280]">{r.description}</p>
+              <p className="text-xs sm:text-sm text-[#6B7280] truncate">{r.description}</p>
             </div>
           </Link>
         ))}
@@ -344,7 +344,7 @@ export default function DashboardPage() {
         </div>
         <motion.div
           variants={item}
-          className="flex flex-wrap md:flex-nowrap justify-center gap-8 lg:gap-14"
+          className="grid grid-cols-2 lg:grid-cols-4 justify-items-center gap-6 lg:gap-14"
         >
           {stats.map((s) => (
             <StatCircle

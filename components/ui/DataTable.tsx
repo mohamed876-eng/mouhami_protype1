@@ -43,13 +43,13 @@ export default function DataTable({
   return (
     <div className="bg-white rounded-card shadow-card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-[560px]">
           <thead>
             <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="text-right px-6 py-4 text-base font-bold text-[#6B7280]"
+                  className="text-right px-4 sm:px-6 py-3 sm:py-4 text-base font-bold text-[#6B7280] whitespace-nowrap"
                 >
                   {col.label}
                 </th>
@@ -63,7 +63,7 @@ export default function DataTable({
                 className="border-b border-border last:border-b-0 hover:bg-[#EAF2FF]/30 transition-colors duration-150"
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-6 py-4 text-base text-[#0E2F6B]">
+                  <td key={col.key} className="px-4 sm:px-6 py-3 sm:py-4 text-base text-[#0E2F6B]">
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
                   </td>
                 ))}

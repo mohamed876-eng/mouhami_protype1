@@ -14,11 +14,11 @@ export default function Pagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-6">
+    <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        className="px-5 py-2.5 rounded-xl border border-border text-base font-semibold text-[#6B7280] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#EAF2FF] hover:text-[#0F3D91] transition-all duration-250"
+        className="px-4 sm:px-5 py-2.5 rounded-xl border border-border text-sm sm:text-base font-semibold text-[#6B7280] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#EAF2FF] hover:text-[#0F3D91] transition-all duration-250"
       >
         السابق
       </button>
@@ -32,7 +32,7 @@ export default function Pagination({
             )}
             <button
               onClick={() => onPageChange(p)}
-              className={`w-12 h-12 rounded-xl text-base font-bold transition-all duration-250 ${
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl text-sm sm:text-base font-bold transition-all duration-250 ${
                 p === page
                   ? "bg-[#0F3D91] text-white shadow-sm"
                   : "border border-border text-[#6B7280] hover:bg-[#EAF2FF] hover:text-[#0F3D91]"
@@ -46,7 +46,7 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
-        className="px-5 py-2.5 rounded-xl border border-border text-base font-semibold text-[#6B7280] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#EAF2FF] hover:text-[#0F3D91] transition-all duration-250"
+        className="px-4 sm:px-5 py-2.5 rounded-xl border border-border text-sm sm:text-base font-semibold text-[#6B7280] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#EAF2FF] hover:text-[#0F3D91] transition-all duration-250"
       >
         التالي
       </button>

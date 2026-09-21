@@ -70,7 +70,7 @@ export default function EditCasePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl text-primary-500 mb-8">
+      <h1 className="text-2xl sm:text-3xl text-primary-500 mb-6 sm:mb-8 break-words">
         تعديل الملف : {caseData?.reference}
       </h1>
 
@@ -80,8 +80,8 @@ export default function EditCasePage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-secondary-200 p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-secondary-200 p-4 sm:p-6 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">النوع</label>
             <input type="text" name="type" value={form.type} onChange={handleChange} required className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" />
@@ -92,7 +92,7 @@ export default function EditCasePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">المحكمة</label>
             <input type="text" name="tribunal" value={form.tribunal} onChange={handleChange} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" />

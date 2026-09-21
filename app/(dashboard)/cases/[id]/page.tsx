@@ -97,17 +97,17 @@ export default function CaseDetailPage() {
   return (
     <div>
       {/* En-tête */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl text-primary-500">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl text-primary-500 break-words">
             الملف : {caseData.reference}
           </h1>
-          <p className="text-lg text-secondary-400 mt-1">
+          <p className="text-base sm:text-lg text-secondary-400 mt-1 break-words">
             {caseData.type}{caseData.sousType ? ` - ${caseData.sousType}` : ""}
             {caseData.client ? ` | ${caseData.client.prenom} ${caseData.client.nom}` : ""}
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3 shrink-0">
           <button onClick={handleExportPDF} className="bg-primary-500 text-white px-5 py-3 rounded-xl hover:bg-primary-600 transition-colors">
             تصدير PDF
           </button>
@@ -249,10 +249,10 @@ export default function CaseDetailPage() {
             ) : (
               <div className="space-y-2">
                 {caseData.documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">{doc.nom}</p>
-                      <p className="text-xs text-secondary-400">{doc.fileName} — {formatDateShort(doc.uploadedAt)}</p>
+                  <div key={doc.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-secondary-50 rounded-lg">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium break-words">{doc.nom}</p>
+                      <p className="text-xs text-secondary-400 break-words">{doc.fileName} — {formatDateShort(doc.uploadedAt)}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge text={formatDocStatus(doc.etat)} />
@@ -293,10 +293,10 @@ export default function CaseDetailPage() {
             ) : (
               <div className="space-y-2">
                 {caseData.hearings.map((hearing) => (
-                  <div key={hearing.id} className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg">
-                    <div>
+                  <div key={hearing.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-secondary-50 rounded-lg">
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">{formatDateShort(hearing.date)}{hearing.heure ? ` — ${hearing.heure}` : ""}</p>
-                      <p className="text-xs text-secondary-400">{hearing.tribunal}{hearing.type ? ` | ${hearing.type}` : ""}</p>
+                      <p className="text-xs text-secondary-400 break-words">{hearing.tribunal}{hearing.type ? ` | ${hearing.type}` : ""}</p>
                     </div>
                     <Badge text={hearing.statut === "planifiee" ? "مخطط" : hearing.statut === "tenue" ? "منعقدة" : hearing.statut === "reportee" ? "مؤجلة" : "ملغاة"} />
                   </div>
@@ -375,7 +375,7 @@ export default function CaseDetailPage() {
       {/* Modal Ajout Audience */}
       <Modal isOpen={showHearingModal} onClose={() => setShowHearingModal(false)} title="إضافة جلسة">
         <form onSubmit={handleAddHearing} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-1">التاريخ *</label>
               <input type="date" name="date" required className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" />

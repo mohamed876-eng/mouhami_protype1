@@ -46,8 +46,8 @@ export default function Modal({
       <div
         className={`relative bg-white rounded-card shadow-xl w-full ${sizeClasses[size]} mx-4 max-h-[90vh] overflow-y-auto animate-scale-in`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-xl font-bold text-[#0E2F6B]">{title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
+          <h2 className="text-lg sm:text-xl font-bold text-[#0E2F6B]">{title}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-[#EAF2FF] rounded-xl transition-colors cursor-pointer"
@@ -55,7 +55,7 @@ export default function Modal({
             <X className="w-6 h-6 text-[#6B7280]" />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

@@ -56,8 +56,8 @@ export default function NotificationPopup({
   const event = current.event;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 animate-slide-up">
-      <div className="bg-white rounded-card shadow-card border border-border p-5 w-80">
+    <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 animate-slide-up">
+      <div className="bg-white rounded-card shadow-card border border-border p-5 w-[calc(100vw-2rem)] max-w-80">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-[#FFF6EC] flex items-center justify-center">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, Menu, X } from "lucide-react";
 import { icones, tailles } from "@/components/lottie/icones";
 import IconeAnimee from "@/components/ui/IconeAnimee";
 import LogoMouhami from "@/components/ui/LogoMouhami";
@@ -26,40 +26,50 @@ export default function Header() {
   const router = useRouter();
   const user = getStoredUser();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     clearAuth();
     router.push("/login");
   };
 
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
+
   return (
-    <header className="h-54 bg-white shadow-[0_1px_0_0_#E8EEF7] sticky top-0 z-20">
-      <div className="flex items-center justify-between h-full px-10 gap-6">
-        {/* Logo */}
-        <Link href="/dashboard" className="flex items-center shrink-0">
+    <header className="bg-white shadow-[0_1px_0_0_#E8EEF7] sticky top-0 z-20">
+      <div className="flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] h-20 lg:h-auto px-4 sm:px-6 lg:px-10 gap-3 sm:gap-6 lg:gap-5">
+        {/* Logo — réduit sur petits écrans */}
+        <Link href="/dashboard" className="flex items-center shrink-0 lg:justify-self-start lg:col-start-1">
           <LogoMouhami />
         </Link>
 
-        {/* Navigation principale — décalée de 1,5cm (~57px) vers la gauche pour
-            laisser suffisamment de place au logo Lottie élargi. */}
-        <nav className="flex items-center gap-3 flex-1 justify-center overflow-x-auto hide-scrollbar mr-[57px]">
+        {/* Menu hamburger (mobile/tablette) */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="lg:hidden inline-flex items-center justify-center w-12 h-12 rounded-xl hover:bg-[#EAF2FF] text-[#0F3D91] transition-colors cursor-pointer shrink-0"
+          aria-label="القائمة"
+        >
+          {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+        </button>
+
+        {/* Navigation principale — centrée sur l'axe de l'en-tête (grille 1fr auto 1fr) */}
+        <nav className="hidden lg:flex items-center gap-3 justify-center overflow-x-auto hide-scrollbar lg:col-start-2">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/");
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative flex flex-col items-center gap-2 px-6 py-5 rounded-2xl transition-all duration-250 min-w-[110px] ${
-                  isActive
+                className={`relative flex flex-col items-center justify-center gap-1.5 px-5 py-4 rounded-2xl transition-all duration-250 shrink-0 ${
+                  active
                     ? "text-[#0F3D91] font-bold bg-[#EAF2FF]"
                     : "text-[#6B7280] hover:text-[#0F3D91] font-semibold hover:bg-[#EAF2FF]/60"
                 }`}
               >
                 <IconeAnimee icone={item.icone} taille={tailles.navigation} title={item.label} />
-                <span className="text-lg whitespace-nowrap">{item.label}</span>
-                {isActive && (
+                <span className="text-base whitespace-nowrap">{item.label}</span>
+                {active && (
                   <span className="absolute -bottom-0.5 right-1/2 translate-x-1/2 w-10 h-1 bg-[#FF9F1C] rounded-full" />
                 )}
               </Link>
@@ -68,7 +78,7 @@ export default function Header() {
         </nav>
 
         {/* Actions droite */}
-        <div className="flex items-center gap-6 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0 lg:justify-self-end lg:col-start-3">
           {/* Cloche de rappel */}
           <ReminderBell />
 
@@ -76,20 +86,20 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-4 px-5 py-4 rounded-xl hover:bg-[#EAF2FF] transition-all duration-250 cursor-pointer"
+              className="flex items-center gap-2 sm:gap-4 px-2 sm:px-5 py-3 sm:py-4 rounded-xl hover:bg-[#EAF2FF] transition-all duration-250 cursor-pointer"
               aria-label="قائمة المستخدم"
             >
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#0F3D91] to-[#1E5BDB] flex items-center justify-center text-white text-3xl font-bold shadow-sm">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 xl:w-20 xl:h-20 rounded-full bg-gradient-to-br from-[#0F3D91] to-[#1E5BDB] flex items-center justify-center text-white text-lg sm:text-xl md:text-3xl font-bold shadow-sm">
                 {user?.nom?.charAt(0) || "م"}
               </div>
-              <div className="hidden sm:block text-right">
-                <p className="text-xl font-bold text-[#0E2F6B] leading-tight">
+              <div className="hidden xl:block text-right">
+                <p className="text-lg font-bold text-[#0E2F6B] leading-tight">
                   {user?.prenom} {user?.nom}
                 </p>
-                <p className="text-base text-[#6B7280] leading-tight">محامٍ</p>
+                <p className="text-sm text-[#6B7280] leading-tight">محامٍ</p>
               </div>
               <ChevronDown
-                className={`w-6 h-6 text-[#6B7280] transition-transform duration-250 ${
+                className={`hidden sm:block w-6 h-6 text-[#6B7280] transition-transform duration-250 ${
                   showDropdown ? "rotate-180" : ""
                 }`}
               />
@@ -101,12 +111,12 @@ export default function Header() {
                   className="fixed inset-0 z-10"
                   onClick={() => setShowDropdown(false)}
                 />
-                <div className="absolute left-0 top-full mt-2 w-72 bg-white rounded-card shadow-card border border-border z-20 overflow-hidden animate-scale-in">
+                <div className="absolute left-0 top-full mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white rounded-card shadow-card border border-border z-20 overflow-hidden animate-scale-in">
                   <div className="p-4 border-b border-border">
                     <p className="font-bold text-[#0E2F6B] text-lg">
                       {user?.prenom} {user?.nom}
                     </p>
-                    <p className="text-sm text-[#6B7280] mt-1">
+                    <p className="text-sm text-[#6B7280] mt-1 break-all">
                       {user?.email}
                     </p>
                   </div>
@@ -139,6 +149,74 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Tiroir de navigation mobile (tablette / mobile) */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setMobileMenuOpen(false)}>
+          <div
+            className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-white shadow-card overflow-y-auto animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                <LogoMouhami />
+              </Link>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#EAF2FF] text-[#0F3D91] cursor-pointer"
+                aria-label="إغلاق"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <nav className="p-3 space-y-1">
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-4 rounded-xl transition-all duration-250 ${
+                      active
+                        ? "bg-[#EAF2FF] text-[#0F3D91] font-bold"
+                        : "text-[#6B7280] font-semibold hover:bg-[#EAF2FF]/60 hover:text-[#0F3D91]"
+                    }`}
+                  >
+                    <IconeAnimee icone={item.icone} taille={tailles.petit} title={item.label} />
+                    <span className="text-base">{item.label}</span>
+                  </Link>
+                );
+              })}
+              <div className="border-t border-border pt-2 mt-2 space-y-1">
+                <Link
+                  href="/documents"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-4 rounded-xl text-[#0E2F6B] hover:bg-[#EAF2FF]/60 font-semibold"
+                >
+                  <IconeAnimee icone={icones.documents} taille={tailles.petit} animation="none" title="المستندات" />
+                  المستندات
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-4 rounded-xl text-[#0E2F6B] hover:bg-[#EAF2FF]/60 font-semibold"
+                >
+                  <IconeAnimee icone={icones.dossiers} taille={tailles.petit} animation="none" title="الإعدادات" />
+                  الإعدادات
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-red-600 hover:bg-red-50 font-semibold cursor-pointer"
+                >
+                  <LogOut className="w-6 h-6" />
+                  تسجيل الخروج
+                </button>
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

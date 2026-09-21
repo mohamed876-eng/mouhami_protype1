@@ -101,7 +101,7 @@ export default function CountdownTimer({
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-3 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           {units.map((unit) => (
             <div key={unit.label} className="bg-white rounded-card-sm py-4 shadow-sm">
               <p className="text-3xl font-bold text-red-500 tabular-nums leading-none">
@@ -123,7 +123,7 @@ export default function CountdownTimer({
         </div>
         <div>
           <p className="text-sm text-[#6B7280] font-semibold">التذكير القادم</p>
-          <p className="text-lg font-bold text-[#0E2F6B]">{event.title}</p>
+          <p className="text-lg font-bold text-[#0E2F6B] break-words">{event.title}</p>
         </div>
         <div className="mr-auto">
           <span className="px-3 py-1 rounded-full bg-white text-sm font-bold text-[#FF9F1C] shadow-sm">
@@ -132,7 +132,7 @@ export default function CountdownTimer({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 text-center">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
         {units.map((unit) => (
           <div key={unit.label} className="bg-white rounded-card-sm py-4 shadow-sm">
             <p className="text-3xl font-bold text-[#FF9F1C] tabular-nums leading-none">

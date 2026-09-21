@@ -41,13 +41,13 @@ export default function ClientLayout({
       <div className="relative z-10">
       {/* Header client */}
       <header className="bg-primary-500 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="الشعار" className="w-8 h-8 rounded" />
-            <span className="font-bold">مساحة العميل</span>
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src="/images/logo.png" alt="الشعار" className="w-8 h-8 rounded shrink-0" />
+            <span className="font-bold truncate">مساحة العميل</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-primary-200">
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="hidden sm:inline text-sm text-primary-200 truncate">
               {user?.prenom} {user?.nom}
             </span>
             <button

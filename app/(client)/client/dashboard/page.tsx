@@ -71,10 +71,10 @@ export default function ClientDashboardPage() {
               href={`/client/cases/${cas.id}`}
               className="bg-white rounded-xl border border-secondary-200 p-5 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-medium text-primary-500">{cas.reference}</p>
-                  <p className="text-sm text-secondary-400">{cas.type}</p>
+                  <p className="text-sm text-secondary-400 truncate">{cas.type}</p>
                 </div>
                 <div className="text-left">
                   <Badge text={formatCaseStatus(cas.etat)} />

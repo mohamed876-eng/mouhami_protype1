@@ -55,7 +55,7 @@ function AnimatedCounter({ value }: { value: number }) {
 function StatCircle({ title, value, icone }: StatCircleProps) {
   return (
     <div className="flex flex-col items-center gap-2 select-none shrink-0">
-      <div className="relative flex items-center justify-center w-[160px] h-[160px] md:w-[175px] md:h-[175px] lg:w-[212px] lg:h-[212px]">
+      <div className="relative flex items-center justify-center w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[175px] md:h-[175px] xl:w-[212px] xl:h-[212px]">
         <svg
           viewBox="0 0 200 200"
           className="absolute inset-0 w-full h-full -rotate-90"
@@ -99,16 +99,16 @@ function StatCircle({ title, value, icone }: StatCircleProps) {
 
         <IconeAnimee
           icone={icone}
-          taille={54}
+          taille={44}
           title={title}
-          className="relative z-10"
+          className="relative z-10 scale-75 sm:scale-100"
         />
       </div>
 
-      <p className="text-3xl md:text-4xl font-bold text-[#0E2F6B] tabular-nums leading-tight">
+      <p className="text-2xl sm:text-3xl xl:text-4xl font-bold text-[#0E2F6B] tabular-nums leading-tight">
         <AnimatedCounter value={value} />
       </p>
-      <p className="text-base md:text-lg font-semibold text-[#6B7280] text-center leading-snug">
+      <p className="text-sm sm:text-base xl:text-lg font-semibold text-[#6B7280] text-center leading-snug">
         {title}
       </p>
     </div>

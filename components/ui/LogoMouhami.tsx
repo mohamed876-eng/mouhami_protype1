@@ -5,10 +5,9 @@ import { Lottie, type LottieHandle } from "lottie-react";
 import logoAnimation from "@/components/lottie/scene_logo_mouhami_no_jitter.json";
 
 // Le Lottie (canvas 843×240) est affiché à sa proportion naturelle pour ne rien
-// rogner : hauteur 96px → largeur 96 × 843/240 ≈ 337px.
+// rogner : hauteur 96px → largeur 96 × 843/240 ≈ 337px au maximum.
 // Vitesse réduite (0.65) pour ralentir un peu l'animation au hover.
-const LOGO_WIDTH = 337;
-const LOGO_HEIGHT = 96;
+const LOGO_RATIO = "843 / 240";
 const LOGO_SPEED = 0.65;
 
 function showLastFrame(ref: React.RefObject<LottieHandle | null>) {
@@ -69,8 +68,8 @@ export default function LogoMouhami() {
 
   return (
     <div
-      className="flex items-center shrink-0 overflow-hidden"
-      style={{ width: LOGO_WIDTH, height: LOGO_HEIGHT }}
+      className="flex items-center shrink-0 overflow-hidden w-[180px] sm:w-[220px] md:w-[260px] lg:w-[290px] xl:w-[337px]"
+      style={{ aspectRatio: LOGO_RATIO, maxWidth: "100%" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       title="محامي"
@@ -84,11 +83,11 @@ export default function LogoMouhami() {
         renderer="svg"
         subscriptions={{ ready: handleReady }}
         rendererSettings={{
-          preserveAspectRatio: "xMidYMid slice",
+          preserveAspectRatio: "xMidYMid meet",
         }}
         style={{
-          width: LOGO_WIDTH,
-          height: LOGO_HEIGHT,
+          width: "100%",
+          height: "100%",
           display: "block",
         }}
       />

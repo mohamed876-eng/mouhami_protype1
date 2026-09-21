@@ -113,7 +113,7 @@ export default function LegalSearchPage() {
         <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
           <IconeAnimee icone={lottieSearch} taille={42} title="المكتبة القانونية" />
         </div>
-        <h1 className="text-3xl text-primary-500">المكتبة القانونية</h1>
+        <h1 className="text-2xl sm:text-3xl text-primary-500">المكتبة القانونية</h1>
       </div>
 
       <div className="space-y-8">

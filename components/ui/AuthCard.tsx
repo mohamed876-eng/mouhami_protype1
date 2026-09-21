@@ -91,7 +91,7 @@ export function AuthCard({
   return (
     <div
       dir="rtl"
-      className="w-full rounded-[28px] bg-[#F4F0E8] p-8 text-right shadow-[0_30px_80px_-24px_rgba(7,59,130,0.35)] sm:p-10"
+      className="w-full rounded-[28px] bg-[#F4F0E8] p-5 sm:p-8 md:p-10 text-right shadow-[0_30px_80px_-24px_rgba(7,59,130,0.35)]"
     >
       {/* En-tête */}
       <div className="mb-8">
@@ -122,7 +122,7 @@ export function AuthCard({
         {/* Champs inscription */}
         {mode === "register" && (
           <>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelCls}>الاسم الشخصي</label>
                 <input

@@ -46,13 +46,13 @@ export default function AudiencesPage() {
           {hearings.map((hearing) => (
             <div
               key={hearing.id}
-              className="bg-white rounded-xl border border-secondary-200 p-4 flex items-center justify-between"
+              className="bg-white rounded-xl border border-secondary-200 p-4 flex flex-wrap items-center justify-between gap-3"
             >
-              <div>
-                <p className="text-sm font-medium">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">
                   {hearing.caseRef} — {hearing.client?.prenom} {hearing.client?.nom}
                 </p>
-                  <p className="text-xs text-secondary-400">
+                  <p className="text-xs text-secondary-400 truncate">
                     {hearing.cas?.reference}{hearing.tribunal ? ` — ${hearing.tribunal}` : ""}{hearing.type ? ` | ${hearing.type}` : ""}
                   </p>
               </div>

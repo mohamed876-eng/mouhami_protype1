@@ -88,18 +88,18 @@ export default function DocumentGeneratorPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-8 flex-wrap">
         <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
           <IconeAnimee icone={lottieDocument} taille={42} title="منشئ المستندات" />
         </div>
-        <h1 className="text-3xl text-primary-500">منشئ المستندات</h1>
+        <h1 className="text-2xl sm:text-3xl text-primary-500">منشئ المستندات</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl border border-secondary-200 p-6">
-          <h2 className="text-xl text-primary-500 mb-5">اختيار المستند</h2>
+        <div className="bg-white rounded-xl border border-secondary-200 p-5 sm:p-6">
+          <h2 className="text-lg sm:text-xl text-primary-500 mb-5">اختيار المستند</h2>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {documentTypes.map((dt) => (
               <button
                 key={dt.type}
@@ -146,8 +146,8 @@ export default function DocumentGeneratorPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-secondary-200 p-6">
-          <h2 className="text-xl text-primary-500 mb-5">معاينة المستند</h2>
+        <div className="bg-white rounded-xl border border-secondary-200 p-5 sm:p-6">
+          <h2 className="text-lg sm:text-xl text-primary-500 mb-5">معاينة المستند</h2>
           {result ? (
             <pre className="whitespace-pre-wrap leading-relaxed text-secondary-700 font-sans">
               {result}

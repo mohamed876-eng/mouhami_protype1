@@ -64,22 +64,22 @@ export default function ClientDetailPage() {
   return (
     <div>
       {/* En-tête */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-500 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold shrink-0">
             {client.prenom.charAt(0)}
             {client.nom.charAt(0)}
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-primary-500">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-primary-500 break-words">
               {client.prenom} {client.nom}
             </h1>
-            <p className="text-secondary-400">
+            <p className="text-sm sm:text-base text-secondary-400 break-words">
               CIN: {client.cin} | {client.telephone}
             </p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 shrink-0">
           <Link
             href={`/clients/${client.id}/edit`}
             className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-600 transition-colors"

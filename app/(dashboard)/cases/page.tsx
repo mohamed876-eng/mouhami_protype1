@@ -118,12 +118,12 @@ export default function CasesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
             <IconeAnimee icone={lottieFolder} taille={42} title="الملفات" />
           </div>
-          <h1 className="text-3xl text-primary-500">الملفات</h1>
+          <h1 className="text-2xl sm:text-3xl text-primary-500">الملفات</h1>
         </div>
         <button onClick={openCreateModal} className="bg-primary-500 text-white px-5 py-3 rounded-xl hover:bg-primary-600 transition-colors">
           <span className="inline-flex items-center gap-1.5"><IconeAnimee icone={lottiePlus} taille={20} animation="click" /> إضافة ملف</span>
@@ -131,13 +131,13 @@ export default function CasesPage() {
       </div>
 
       {/* Filtres */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6">
         <input
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="ابحث عن ملف بالمرجع، النوع، أو العميل..."
-          className="flex-1 max-w-md px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="flex-1 min-w-[220px] max-w-md px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
         <select
           value={etatFilter}
@@ -208,7 +208,7 @@ export default function CasesPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-1">النوع (نص حر)</label>
               <input type="text" value={newCase.type} onChange={(e) => setNewCase({ ...newCase, type: e.target.value })} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" placeholder="طلاق، إرث، ..." />

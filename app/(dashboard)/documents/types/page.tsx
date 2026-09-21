@@ -61,12 +61,12 @@ export default function DocumentTypesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
             <IconeAnimee icone={lottieDocument} taille={42} title="أنواع المستندات" />
           </div>
-          <h1 className="text-2xl font-bold text-primary-500">أنواع المستندات</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary-500">أنواع المستندات</h1>
         </div>
         <button
           onClick={openCreate}
@@ -88,7 +88,8 @@ export default function DocumentTypesPage() {
             لا توجد أنواع بعد. أضف أول نوع مستند.
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px]">
             <thead>
               <tr className="border-b border-secondary-200 bg-secondary-50">
                 <th className="text-right px-4 py-3 text-sm font-medium text-secondary-600">الاسم</th>
@@ -109,6 +110,7 @@ export default function DocumentTypesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -96,7 +96,7 @@ export default function ClientCaseDetailPage() {
           ) : (
             <div className="space-y-2">
               {caseData.hearings?.map((hearing: any) => (
-                <div key={hearing.id} className="flex items-center justify-between p-2 bg-secondary-50 rounded-lg">
+                <div key={hearing.id} className="flex flex-wrap items-center justify-between gap-2 p-2 bg-secondary-50 rounded-lg">
                   <div>
                     <p className="text-sm font-medium">{formatDateShort(hearing.date)}{hearing.heure ? ` — ${hearing.heure}` : ""}</p>
                     <p className="text-xs text-secondary-400">{hearing.tribunal || ""}</p>
@@ -116,10 +116,10 @@ export default function ClientCaseDetailPage() {
           ) : (
             <div className="space-y-2">
               {visibleDocs.map((doc: any) => (
-                <div key={doc.id} className="flex items-center justify-between p-2 bg-secondary-50 rounded-lg">
+                <div key={doc.id} className="flex flex-wrap items-center justify-between gap-2 p-2 bg-secondary-50 rounded-lg">
                   <div>
                     <p className="text-sm font-medium">{doc.nom}</p>
-                    <p className="text-xs text-secondary-400">{doc.fileName}</p>
+                    <p className="text-xs text-secondary-400 break-words">{doc.fileName}</p>
                   </div>
                   <a
                     href={`/api/documents/${doc.id}/download`}
