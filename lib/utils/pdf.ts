@@ -36,6 +36,7 @@ interface PDFCaseData {
   type: string;
   sousType?: string;
   tribunal?: string;
+  region?: string;
   dateCreation: string;
   etat: string;
   description?: string;
@@ -134,6 +135,7 @@ export async function generateCasePDF(data: PDFCaseData): Promise<Buffer> {
   const caseInfo = [
     `النوع : ${data.type}${data.sousType ? " - " + data.sousType : ""}`,
     `المحكمة : ${data.tribunal || "غير محدد"}`,
+    `الجهة القضائية : ${data.region || "غير محددة"}`,
     `تاريخ الإنشاء : ${data.dateCreation}`,
     `الحالة : ${data.etat}`,
     `التقدم : ${data.progress}%`,

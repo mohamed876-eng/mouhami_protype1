@@ -37,6 +37,7 @@ export interface Case {
   reference: string;
   mahakimRef?: string;
   tribunal?: string;
+  region?: string | null;
   type: string;
   sousType?: string;
   dateCreation: string;
@@ -46,6 +47,8 @@ export interface Case {
   progress: number;
   createdAt: string;
   client: Client;
+  templateId?: string | null;
+  caseTypeId?: string | null;
   template?: CaseTemplate;
   caseType?: CaseType;
   documents: Document[];
@@ -93,7 +96,7 @@ export interface DocumentType {
 export interface CaseType {
   id: string;
   nameAr: string;
-  description?: string;
+  description?: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -104,7 +107,7 @@ export interface CaseType {
 export interface CaseTypeDocument {
   id: string;
   nameAr: string;
-  description?: string;
+  description?: string | null;
   isRequired: boolean;
   order: number;
   createdAt: string;
@@ -113,17 +116,17 @@ export interface CaseTypeDocument {
 export interface Document {
   id: string;
   nom: string;
-  description?: string;
+  description?: string | null;
   fileName: string;
   filePath: string;
   fileSize?: number;
   auteur?: string;
   etat: string;
-  commentaires?: string;
+  commentaires?: string | null;
   uploadedAt: string;
   isClientVisible: boolean;
   type?: DocumentType;
-  checklistItemId?: string;
+  checklistItemId?: string | null;
   cas?: { reference: string; client: Client };
 }
 

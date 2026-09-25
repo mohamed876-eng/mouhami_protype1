@@ -59,7 +59,7 @@ export function useCaseTypes() {
 
   // ─── CaseType Documents ──────────────────────────────────
 
-  const addDocument = useCallback(async (caseTypeId: string, data: { nameAr: string; isRequired?: boolean; order?: number }) => {
+  const addDocument = useCallback(async (caseTypeId: string, data: { nameAr: string; description?: string | null; isRequired?: boolean; order?: number }) => {
     const result = await apiService.post<{ document: CaseTypeDocument }>(`/types-de-dossier/${caseTypeId}/documents`, data);
     if (result.success) {
       return { success: true, document: result.data!.document };
@@ -67,7 +67,7 @@ export function useCaseTypes() {
     return { success: false, message: result.message };
   }, []);
 
-  const updateDocument = useCallback(async (caseTypeId: string, docId: string, data: { nameAr?: string; isRequired?: boolean; order?: number }) => {
+  const updateDocument = useCallback(async (caseTypeId: string, docId: string, data: { nameAr?: string; description?: string | null; isRequired?: boolean; order?: number }) => {
     const result = await apiService.put<{ document: CaseTypeDocument }>(`/types-de-dossier/${caseTypeId}/documents/${docId}`, data);
     if (result.success) {
       return { success: true, document: result.data!.document };

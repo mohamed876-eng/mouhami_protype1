@@ -24,6 +24,7 @@ export const dossierDocumentRepository = {
     fileSize?: number;
     auteur?: string;
     isClientVisible?: boolean;
+    checklistItemId?: string;
   }) {
     return prisma.document.create({ data: donnees });
   },

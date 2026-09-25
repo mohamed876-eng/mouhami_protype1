@@ -16,6 +16,7 @@ export const dossierCaseRepository = {
         { reference: { contains: r, mode: "insensitive" } },
         { mahakimRef: { contains: r, mode: "insensitive" } },
         { tribunal: { contains: r, mode: "insensitive" } },
+        { region: { contains: r, mode: "insensitive" } },
         { type: { contains: r, mode: "insensitive" } },
         { description: { contains: r, mode: "insensitive" } },
         { client: { nom: { contains: r, mode: "insensitive" } } },
@@ -77,6 +78,7 @@ export const dossierCaseRepository = {
     type: string;
     sousType?: string;
     tribunal?: string;
+    region?: string;
     dateCreation: Date;
     description?: string;
     notes?: string;

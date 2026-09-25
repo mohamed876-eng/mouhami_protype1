@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCases } from "@/hooks/useCases";
 import { apiService } from "@/lib/api";
+import CourtSelect from "@/components/ui/CourtSelect";
+import {
+  CUSTOM_TRIBUNAL_VALUE,
+  JUDICIAL_REGIONS,
+  getJudicialRegionByTribunal,
+} from "@/lib/judicial-courts";
 
 export default function EditCasePage() {
   const { id } = useParams();
@@ -16,7 +22,9 @@ export default function EditCasePage() {
   const [form, setForm] = useState({
     type: "",
     sousType: "",
+    regionId: "",
     tribunal: "",
+    customTribunal: "",
     mahakimRef: "",
     etat: "",
     description: "",
@@ -29,10 +37,26 @@ export default function EditCasePage() {
 
   useEffect(() => {
     if (caseData) {
+      const storedRegion = JUDICIAL_REGIONS.find(
+        (region) => region.nameAr === caseData.region
+      );
+      const inferredRegion = getJudicialRegionByTribunal(caseData.tribunal);
+      const selectedRegion = storedRegion || inferredRegion;
+      const tribunalValue = caseData.tribunal?.trim() || "";
+      const knownTribunal = selectedRegion?.tribunals.some(
+        (court) => court.nameAr === tribunalValue
+      );
+
       setForm({
         type: caseData.type,
         sousType: caseData.sousType || "",
-        tribunal: caseData.tribunal || "",
+        regionId: selectedRegion ? String(selectedRegion.id) : "",
+        tribunal: tribunalValue
+          ? knownTribunal
+            ? tribunalValue
+            : CUSTOM_TRIBUNAL_VALUE
+          : "",
+        customTribunal: tribunalValue && !knownTribunal ? tribunalValue : "",
         mahakimRef: caseData.mahakimRef || "",
         etat: caseData.etat,
         description: caseData.description || "",
@@ -47,7 +71,20 @@ export default function EditCasePage() {
     setLoading(true);
     setError("");
 
-    const result = await updateCase(id as string, form);
+    const { regionId, customTribunal, ...caseData } = form;
+    const selectedRegion = JUDICIAL_REGIONS.find(
+      (region) => String(region.id) === regionId
+    );
+    const tribunal = (
+      caseData.tribunal === CUSTOM_TRIBUNAL_VALUE
+        ? customTribunal
+        : caseData.tribunal
+    ).trim();
+    const result = await updateCase(id as string, {
+      ...caseData,
+      region: selectedRegion?.nameAr,
+      tribunal: tribunal || undefined,
+    });
     if (result.success) {
       router.push(`/cases/${id}`);
     } else {
@@ -92,11 +129,15 @@ export default function EditCasePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-1">المحكمة</label>
-            <input type="text" name="tribunal" value={form.tribunal} onChange={handleChange} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" />
-          </div>
+        <div className="space-y-4">
+          <CourtSelect
+            regionId={form.regionId}
+            tribunal={form.tribunal}
+            customTribunal={form.customTribunal}
+            onRegionChange={(regionId) => setForm((current) => ({ ...current, regionId, tribunal: "", customTribunal: "" }))}
+            onTribunalChange={(tribunal) => setForm((current) => ({ ...current, tribunal, customTribunal: tribunal === CUSTOM_TRIBUNAL_VALUE ? current.customTribunal : "" }))}
+            onCustomTribunalChange={(customTribunal) => setForm((current) => ({ ...current, customTribunal }))}
+          />
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">مرجع محكيم</label>
             <input type="text" name="mahakimRef" value={form.mahakimRef} onChange={handleChange} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" />

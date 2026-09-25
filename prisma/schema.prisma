@@ -58,6 +58,7 @@ model Case {
   reference      String              @unique
   mahakimRef     String?
   tribunal       String?
+  region         String?
   type           String
   sousType       String?
   dateCreation   DateTime            @default(now())

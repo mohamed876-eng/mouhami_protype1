@@ -50,6 +50,7 @@ export const serviceDossiers = {
     type: string;
     sousType?: string;
     tribunal?: string;
+    region?: string;
     dateCreation?: Date;
     description?: string;
     notes?: string;
@@ -68,6 +69,7 @@ export const serviceDossiers = {
           type: donnees.type,
           sousType: donnees.sousType || undefined,
           tribunal: donnees.tribunal || undefined,
+          region: donnees.region || undefined,
           dateCreation: donnees.dateCreation || new Date(),
           description: donnees.description || undefined,
           notes: donnees.notes || undefined,
@@ -83,18 +85,6 @@ export const serviceDossiers = {
         ordre: number;
       }[] = [];
 
-      if (donnees.templateId) {
-        const docsModele = await tx.caseTemplateDocument.findMany({
-          where: { templateId: donnees.templateId },
-          orderBy: { ordre: "asc" },
-        });
-        documentsChecklist = docsModele.map((doc) => ({
-          nom: doc.nom,
-          obligatoire: doc.obligatoire,
-          ordre: doc.ordre,
-        }));
-      }
-
       if (donnees.caseTypeId) {
         const docsTypeCas = await tx.caseTypeDocument.findMany({
           where: { caseTypeId: donnees.caseTypeId },
@@ -104,6 +94,16 @@ export const serviceDossiers = {
           nom: doc.nameAr,
           obligatoire: doc.isRequired,
           ordre: doc.order,
+        }));
+      } else if (donnees.templateId) {
+        const docsModele = await tx.caseTemplateDocument.findMany({
+          where: { templateId: donnees.templateId },
+          orderBy: { ordre: "asc" },
+        });
+        documentsChecklist = docsModele.map((doc) => ({
+          nom: doc.nom,
+          obligatoire: doc.obligatoire,
+          ordre: doc.ordre,
         }));
       }
 
@@ -146,6 +146,7 @@ export const serviceDossiers = {
       "mahakimRef",
       "sousType",
       "tribunal",
+      "region",
       "description",
       "notes",
     ]) {
@@ -189,6 +190,26 @@ export const serviceDossiers = {
     userId: string,
     casId: string
   ) {
+    const existingItem = await prisma.caseChecklistItem.findFirst({
+      where: { id: itemId, casId },
+      select: { id: true },
+    });
+    if (!existingItem) {
+      throw ErreurApi.nonTrouve("عنصر قائمة المستندات");
+    }
+
+    if (!coche) {
+      const linkedDocument = await prisma.document.findFirst({
+        where: { checklistItemId: itemId, casId },
+        select: { id: true },
+      });
+      if (linkedDocument) {
+        throw ErreurApi.donneesInvalides(
+          "لا يمكن إلغاء تحقق مستند مرتبط بالملف"
+        );
+      }
+    }
+
     const item = await prisma.caseChecklistItem.update({
       where: { id: itemId },
       data: { coche },
@@ -236,6 +257,7 @@ export const serviceDossiers = {
       type: cas.type,
       sousType: cas.sousType || undefined,
       tribunal: cas.tribunal || undefined,
+      region: cas.region || undefined,
       dateCreation: cas.dateCreation.toISOString().split("T")[0],
       etat: cas.etat,
       description: cas.description || undefined,

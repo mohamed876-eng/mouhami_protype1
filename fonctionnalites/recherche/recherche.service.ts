@@ -47,9 +47,10 @@ export const serviceRecherche = {
         where: {
           OR: [
             { reference: conditionsRecherche },
-            { mahakimRef: conditionsRecherche },
-            { tribunal: conditionsRecherche },
-            { type: conditionsRecherche },
+             { mahakimRef: conditionsRecherche },
+             { tribunal: conditionsRecherche },
+             { region: conditionsRecherche },
+             { type: conditionsRecherche },
             { sousType: conditionsRecherche },
             { description: conditionsRecherche },
             { notes: conditionsRecherche },
@@ -61,9 +62,10 @@ export const serviceRecherche = {
         select: {
           id: true,
           reference: true,
-          type: true,
-          tribunal: true,
-          etat: true,
+           type: true,
+           tribunal: true,
+           region: true,
+           etat: true,
           client: { select: { id: true, nom: true, prenom: true } },
         },
         take: limite,

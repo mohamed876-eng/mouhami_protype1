@@ -59,11 +59,17 @@ export default function ClientCaseDetailPage() {
               <span className="text-secondary-400">النوع</span>
               <span>{caseData.type}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-400">المحكمة</span>
-              <span>{caseData.tribunal || "—"}</span>
-            </div>
-            <div className="flex justify-between">
+             <div className="flex justify-between">
+               <span className="text-secondary-400">المحكمة</span>
+               <span>{caseData.tribunal || "—"}</span>
+             </div>
+             {caseData.region && (
+               <div className="flex justify-between gap-4">
+                 <span className="text-secondary-400">الجهة القضائية</span>
+                 <span className="text-left">{caseData.region}</span>
+               </div>
+             )}
+             <div className="flex justify-between">
               <span className="text-secondary-400">الحالة</span>
               <Badge text={formatCaseStatus(caseData.etat)} />
             </div>

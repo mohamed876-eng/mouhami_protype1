@@ -46,10 +46,15 @@ export const dossierTypeCasRepository = {
       orderBy: { order: "asc" },
     });
   },
+  async trouverDocumentParId(id: string, typeCasId: string) {
+    return prisma.caseTypeDocument.findFirst({
+      where: { id, caseTypeId: typeCasId },
+    });
+  },
   async ajouterDocument(donnees: {
     caseTypeId: string;
     nameAr: string;
-    description?: string;
+    description?: string | null;
     isRequired?: boolean;
     order?: number;
   }) {
@@ -59,7 +64,7 @@ export const dossierTypeCasRepository = {
     id: string,
     donnees: {
       nameAr?: string;
-      description?: string;
+      description?: string | null;
       isRequired?: boolean;
       order?: number;
     }

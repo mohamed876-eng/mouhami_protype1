@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCases } from "@/hooks/useCases";
-import { useCaseTypes } from "@/hooks/useCaseTypes";
 import DataTable from "@/components/ui/DataTable";
 import Pagination from "@/components/ui/Pagination";
 import Badge from "@/components/ui/Badge";
@@ -15,6 +14,8 @@ import { formatDateShort, formatCaseStatus } from "@/lib/utils";
 import Modal from "@/components/ui/Modal";
 import { apiService } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import CourtSelect from "@/components/ui/CourtSelect";
+import { CUSTOM_TRIBUNAL_VALUE, JUDICIAL_REGIONS } from "@/lib/judicial-courts";
 
 export default function CasesPage() {
   const { cases, pagination, loading, fetchCases, deleteCase } = useCases();
@@ -28,12 +29,17 @@ export default function CasesPage() {
   const [newCase, setNewCase] = useState({
     clientId: "",
     type: "",
+    regionId: "",
     tribunal: "",
+    customTribunal: "",
     description: "",
     templateId: "",
     caseTypeId: "",
   });
   const router = useRouter();
+  const selectedCaseType = caseTypesList.find(
+    (caseType) => caseType.id === newCase.caseTypeId
+  );
 
   useEffect(() => {
     fetchCases({ page, search, etat: etatFilter || undefined });
@@ -53,7 +59,20 @@ export default function CasesPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await apiService.post<any>("/dossiers", newCase);
+    const { regionId, customTribunal, ...caseData } = newCase;
+    const selectedRegion = JUDICIAL_REGIONS.find(
+      (region) => String(region.id) === regionId
+    );
+    const tribunal = (
+      caseData.tribunal === CUSTOM_TRIBUNAL_VALUE
+        ? customTribunal
+        : caseData.tribunal
+    ).trim();
+    const result = await apiService.post<any>("/dossiers", {
+      ...caseData,
+      region: selectedRegion?.nameAr,
+      tribunal: tribunal || undefined,
+    });
     if (result.success) {
       setShowCreateModal(false);
       router.push(`/cases/${result.data!.case.id}`);
@@ -208,16 +227,56 @@ export default function CasesPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">النوع (نص حر)</label>
-              <input type="text" value={newCase.type} onChange={(e) => setNewCase({ ...newCase, type: e.target.value })} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" placeholder="طلاق، إرث، ..." />
+          {selectedCaseType && (
+            <div className="rounded-lg border border-secondary-200 bg-secondary-50 p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className="text-sm font-medium text-secondary-700">
+                  المستندات التي ستتم إضافتها إلى الملف
+                </h3>
+                <span className="text-xs text-secondary-400">
+                  {selectedCaseType.documents?.length || 0} مستند
+                </span>
+              </div>
+              {selectedCaseType.documents?.length ? (
+                <ul className="space-y-2">
+                  {selectedCaseType.documents.map((document: any) => (
+                    <li
+                      key={document.id}
+                      className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm"
+                    >
+                      <span>{document.nameAr}</span>
+                      <span className="text-xs text-secondary-400">
+                        {document.isRequired ? "إلزامي" : "اختياري"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-secondary-500">
+                  لا توجد مستندات مرتبطة بهذا النوع بعد
+                </p>
+              )}
+              {newCase.templateId && (
+                <p className="mt-3 text-xs text-secondary-500">
+                  ستُعتمد مستندات نوع القضية أولًا عند إنشاء الملف
+                </p>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">المحكمة</label>
-              <input type="text" value={newCase.tribunal} onChange={(e) => setNewCase({ ...newCase, tribunal: e.target.value })} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" />
-            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-1">النوع (نص حر)</label>
+            <input type="text" value={newCase.type} onChange={(e) => setNewCase({ ...newCase, type: e.target.value })} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" placeholder="طلاق، إرث، ..." />
           </div>
+
+          <CourtSelect
+            regionId={newCase.regionId}
+            tribunal={newCase.tribunal}
+            customTribunal={newCase.customTribunal}
+            onRegionChange={(regionId) => setNewCase((current) => ({ ...current, regionId, tribunal: "", customTribunal: "" }))}
+            onTribunalChange={(tribunal) => setNewCase((current) => ({ ...current, tribunal, customTribunal: tribunal === CUSTOM_TRIBUNAL_VALUE ? current.customTribunal : "" }))}
+            onCustomTribunalChange={(customTribunal) => setNewCase((current) => ({ ...current, customTribunal }))}
+          />
 
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">الوصف</label>

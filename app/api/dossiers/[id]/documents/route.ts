@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exigerAuthentification, exigerAdmin } from "@/infrastructure/middleware/authentification";
-import { serviceDocuments } from "@/fonctionnalites/documents";
+import { serviceDocuments, validerRattachementDocument } from "@/fonctionnalites/documents";
 import { reponseSucces, reponseErreur } from "@/infrastructure/erreurs/reponse-api";
 import fs from "fs";
 import path from "path";
@@ -38,6 +38,13 @@ export async function POST(
       );
     }
 
+    const checklistValue = formData.get("checklistItemId");
+    const checklistItemId =
+      typeof checklistValue === "string" && checklistValue
+        ? checklistValue
+        : undefined;
+    await validerRattachementDocument(id, checklistItemId);
+
     const uploadsDir = path.resolve(UPLOAD_DIR);
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
@@ -49,7 +56,7 @@ export async function POST(
     const doc = await serviceDocuments.telecharger({
       casId: id,
       typeId: (formData.get("typeId") as string) || undefined,
-      checklistItemId: (formData.get("checklistItemId") as string) || undefined,
+      checklistItemId,
       nom: (formData.get("nom") as string) || file.name,
       description: (formData.get("description") as string) || undefined,
       fileName: file.name,

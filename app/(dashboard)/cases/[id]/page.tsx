@@ -20,6 +20,8 @@ export default function CaseDetailPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedChecklistItem, setSelectedChecklistItem] = useState("");
+  const [documentName, setDocumentName] = useState("");
+  const [documentDescription, setDocumentDescription] = useState("");
 
   useEffect(() => {
     if (id) fetchCase(id as string);
@@ -53,6 +55,8 @@ export default function CaseDetailPage() {
       if (data.success) {
         setShowDocModal(false);
         setSelectedChecklistItem("");
+        setDocumentName("");
+        setDocumentDescription("");
         fetchCase(id as string);
       }
     } catch (err) {
@@ -66,7 +70,7 @@ export default function CaseDetailPage() {
     if (!id) return;
     const form = e.target as HTMLFormElement;
     const data = Object.fromEntries(new FormData(form));
-    const result = await apiService.post(`/dossiers/${id}/audiences`, data);
+    const result = await apiService.post(`/dossiers/${id}/hearings`, data);
     if (result.success) {
       setShowHearingModal(false);
       fetchCase(id as string);
@@ -79,8 +83,17 @@ export default function CaseDetailPage() {
     }
   };
 
-  const openDocModalWithItem = (itemId: string) => {
-    setSelectedChecklistItem(itemId);
+  const openDocModalWithItem = (item: { id: string; nom: string }) => {
+    setSelectedChecklistItem(item.id);
+    setDocumentName(item.nom);
+    setDocumentDescription("");
+    setShowDocModal(true);
+  };
+
+  const openAdditionalDocModal = () => {
+    setSelectedChecklistItem("");
+    setDocumentName("");
+    setDocumentDescription("");
     setShowDocModal(true);
   };
 
@@ -93,6 +106,28 @@ export default function CaseDetailPage() {
   }
 
   const apiBase = "/api";
+  const caseDocuments = caseData.documents || [];
+  const documentsByChecklist = new Map<string, typeof caseDocuments>();
+
+  for (const document of caseDocuments) {
+    if (document.checklistItemId) {
+      const linkedDocuments = documentsByChecklist.get(document.checklistItemId) || [];
+      documentsByChecklist.set(document.checklistItemId, [...linkedDocuments, document]);
+    }
+  }
+
+  const additionalDocuments = caseDocuments.filter(
+    (document) => !document.checklistItemId
+  );
+  const selectedChecklist = caseData.checklist.find(
+    (item) => item.id === selectedChecklistItem
+  );
+  const requiredChecklistItems = caseData.checklist.filter(
+    (item) => item.obligatoire
+  );
+  const completedRequiredItems = requiredChecklistItems.filter(
+    (item) => item.coche || documentsByChecklist.has(item.id)
+  ).length;
 
   return (
     <div>
@@ -138,11 +173,17 @@ export default function CaseDetailPage() {
                 <span className="text-secondary-400">النوع</span>
                 <Badge text={caseData.type} />
               </div>
-              <div className="flex justify-between">
-                <span className="text-secondary-400">المحكمة</span>
-                <span>{caseData.tribunal || "—"}</span>
-              </div>
-              <div className="flex justify-between">
+               <div className="flex justify-between">
+                 <span className="text-secondary-400">المحكمة</span>
+                 <span>{caseData.tribunal || "—"}</span>
+               </div>
+               {caseData.region && (
+                 <div className="flex justify-between gap-4">
+                   <span className="text-secondary-400">الجهة القضائية</span>
+                   <span className="text-left">{caseData.region}</span>
+                 </div>
+               )}
+               <div className="flex justify-between">
                 <span className="text-secondary-400">الحالة</span>
                 <Badge text={formatCaseStatus(caseData.etat)} />
               </div>
@@ -166,7 +207,7 @@ export default function CaseDetailPage() {
               <span className="text-lg font-bold text-primary-500">{caseData.progress}%</span>
             </div>
             <p className="text-xs text-secondary-400">
-              {caseData.checklist.filter((i) => i.coche).length}/{caseData.checklist.filter((i) => i.obligatoire).length} مستندات مكتملة
+              {completedRequiredItems}/{requiredChecklistItems.length} مستندات مكتملة
             </p>
           </div>
         </div>
@@ -182,89 +223,103 @@ export default function CaseDetailPage() {
           )}
 
           {/* Checklist */}
-          {caseData.checklist.length > 0 && (
-            <div className="bg-white rounded-xl border border-secondary-200 p-5">
-              <h3 className="text-lg text-primary-500 mb-4">قائمة المستندات المطلوبة</h3>
+          <div className="bg-white rounded-xl border border-secondary-200 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 className="text-lg text-primary-500">مستندات النوع</h3>
+              <span className="text-xs text-secondary-400">مستندات هذا النوع</span>
+            </div>
+            {caseData.checklist.length === 0 ? (
+              <p className="text-sm text-secondary-400 text-center py-4">لا توجد مستندات لهذا النوع</p>
+            ) : (
               <div className="space-y-2">
                 {caseData.checklist.map((item) => {
-                  const linkedDoc = caseData.documents.find(d => d.checklistItemId === item.id);
+                  const linkedDocuments = documentsByChecklist.get(item.id) || [];
+                  const documentAdded = linkedDocuments.length > 0;
                   return (
-                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg bg-secondary-50">
+                    <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary-50">
                       <input
                         type="checkbox"
-                        checked={item.coche}
+                        checked={item.coche || documentAdded}
+                        disabled={documentAdded}
                         onChange={(e) => handleToggleChecklist(item.id, e.target.checked)}
-                        className="w-5 h-5 text-primary-500 rounded border-secondary-300 focus:ring-primary-500"
+                        className="w-5 h-5 mt-0.5 text-primary-500 rounded border-secondary-300 focus:ring-primary-500"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm ${item.coche ? "line-through text-secondary-400" : "font-medium"}`}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`text-sm ${documentAdded ? "line-through text-secondary-400" : "font-medium"}`}>
                             {item.nom}
                           </span>
-                          {!item.obligatoire && (
-                            <span className="text-xs text-secondary-400">(اختياري)</span>
-                          )}
-                          {item.coche && <span className="text-xs text-green-500">☑</span>}
+                          <span className="text-xs text-secondary-400">
+                            {item.obligatoire ? "إلزامي" : "اختياري"}
+                          </span>
                         </div>
-                        {linkedDoc ? (
-                          <div className="flex items-center gap-2 mt-1 text-xs text-secondary-500">
-                            <span>{linkedDoc.fileName}</span>
-                            <a href={`${apiBase}/documents/${linkedDoc.id}/download`} className="text-primary-500 hover:text-primary-600" target="_blank">
-                              فتح
-                            </a>
-                            <a href={`${apiBase}/documents/${linkedDoc.id}/download`} className="text-primary-500 hover:text-primary-600">
-                              تحميل
-                            </a>
+                        {documentAdded ? (
+                          <div className="mt-2 space-y-2">
+                            {linkedDocuments.map((document) => (
+                              <div key={document.id} className="flex flex-wrap items-center justify-between gap-2 text-xs text-secondary-500">
+                                <span className="break-words">{document.fileName}</span>
+                                <div className="flex items-center gap-3">
+                                  <a href={`${apiBase}/documents/${document.id}/download`} className="text-primary-500 hover:text-primary-600" target="_blank">
+                                    فتح
+                                  </a>
+                                  <a href={`${apiBase}/documents/${document.id}/download`} className="text-primary-500 hover:text-primary-600">
+                                    تحميل
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ) : item.obligatoire && !item.coche ? (
-                          <button
-                            onClick={() => openDocModalWithItem(item.id)}
-                            className="text-xs text-primary-500 hover:text-primary-600 mt-1"
-                          >
-                            + رفع المستند
-                          </button>
-                        ) : null}
+                        ) : (
+                          <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                            <span className="text-xs text-secondary-500">لم تتم إضافة الوثيقة بعد</span>
+                            <button
+                              onClick={() => openDocModalWithItem(item)}
+                              className="text-xs text-primary-500 hover:text-primary-600"
+                            >
+                              إضافة الوثيقة
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Documents */}
           <div className="bg-white rounded-xl border border-secondary-200 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg text-primary-500">المستندات المرفوعة</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 className="text-lg text-primary-500">المستندات الإضافية</h3>
               <button
-                onClick={() => { setSelectedChecklistItem(""); setShowDocModal(true); }}
+                onClick={openAdditionalDocModal}
                 className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-primary-600 transition-colors"
               >
                 <span className="inline-flex items-center gap-1.5"><IconeAnimee icone={lottiePlus} taille={18} animation="click" /> إضافة مستند</span>
               </button>
             </div>
 
-            {caseData.documents.length === 0 ? (
-              <p className="text-sm text-secondary-400 text-center py-4">لا توجد مستندات مرفوعة</p>
+            {additionalDocuments.length === 0 ? (
+              <p className="text-sm text-secondary-400 text-center py-4">لا توجد مستندات إضافية</p>
             ) : (
               <div className="space-y-2">
-                {caseData.documents.map((doc) => (
-                  <div key={doc.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-secondary-50 rounded-lg">
+                {additionalDocuments.map((document) => (
+                  <div key={document.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-secondary-50 rounded-lg">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium break-words">{doc.nom}</p>
-                      <p className="text-xs text-secondary-400 break-words">{doc.fileName} — {formatDateShort(doc.uploadedAt)}</p>
+                      <p className="text-sm font-medium break-words">{document.nom}</p>
+                      <p className="text-xs text-secondary-400 break-words">{document.fileName} — {formatDateShort(document.uploadedAt)}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge text={formatDocStatus(doc.etat)} />
+                      <Badge text={formatDocStatus(document.etat)} />
                       <a
-                        href={`${apiBase}/documents/${doc.id}/download`}
+                        href={`${apiBase}/documents/${document.id}/download`}
                         className="text-primary-500 hover:text-primary-600 text-sm"
                         target="_blank"
                       >
                         فتح
                       </a>
                       <a
-                        href={`${apiBase}/documents/${doc.id}/download`}
+                        href={`${apiBase}/documents/${document.id}/download`}
                         className="text-primary-500 hover:text-primary-600 text-sm"
                       >
                         تحميل
@@ -333,41 +388,51 @@ export default function CaseDetailPage() {
       </div>
 
       {/* Modal Upload Document */}
-      <Modal isOpen={showDocModal} onClose={() => setShowDocModal(false)} title="رفع مستند">
+      <Modal
+        isOpen={showDocModal}
+        onClose={() => setShowDocModal(false)}
+        title={selectedChecklist ? "إضافة المستند المحدد" : "إضافة مستند إضافي"}
+      >
         <form onSubmit={handleFileUpload} className="space-y-4">
-          {caseData.checklist.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">المستند المطلوب</label>
-              <select
-                value={selectedChecklistItem}
-                onChange={(e) => setSelectedChecklistItem(e.target.value)}
-                className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
-              >
-                <option value="">— اختر من القائمة —</option>
-                {caseData.checklist.filter(i => !i.coche).map((item) => (
-                  <option key={item.id} value={item.id}>{item.nom}</option>
-                ))}
-              </select>
+          {selectedChecklist ? (
+            <div className="rounded-lg bg-secondary-50 p-3">
+              <span className="text-xs text-secondary-500">المستند المحدد</span>
+              <p className="text-sm font-medium mt-1">{selectedChecklist.nom}</p>
             </div>
+          ) : (
+            <p className="text-sm text-secondary-500">سيتم حفظ هذا المستند ضمن المستندات الإضافية للملف.</p>
           )}
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-1">اسم المستند</label>
-            <input type="text" name="nom" required className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-secondary-700 mb-1">اسم المستند *</label>
+            <input
+              type="text"
+              name="nom"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-1">الملف (PDF)</label>
+            <label className="block text-sm font-medium text-secondary-700 mb-1">الملف</label>
             <input type="file" name="file" accept=".pdf,image/*" required className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">الوصف</label>
-            <textarea name="description" rows={2} className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm" />
+            <textarea
+              name="description"
+              value={documentDescription}
+              onChange={(e) => setDocumentDescription(e.target.value)}
+              rows={2}
+              className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
+            />
           </div>
           <label className="flex items-center gap-2">
             <input type="checkbox" name="isClientVisible" value="true" defaultChecked className="w-4 h-4 text-primary-500" />
             <span className="text-sm">مرئي للعميل</span>
           </label>
           <button type="submit" disabled={uploading} className="w-full bg-primary-500 text-white py-2.5 rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50">
-            {uploading ? "جاري الرفع..." : "رفع المستند"}
+            {uploading ? "جاري الرفع..." : selectedChecklist ? "إضافة الوثيقة" : "إضافة المستند"}
           </button>
         </form>
       </Modal>

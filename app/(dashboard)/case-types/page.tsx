@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useCaseTypes } from "@/hooks/useCaseTypes";
 import Modal from "@/components/ui/Modal";
 import IconeAnimee from "@/components/ui/IconeAnimee";
-import { lottieJustice, lottiePlus, lottieDocument } from "@/components/lottie";
+import { lottieJustice, lottiePlus } from "@/components/lottie";
 
 export default function CaseTypesPage() {
   const { types, loading, fetchTypes, createType, updateType, deleteType, addDocument, updateDocument, deleteDocument } = useCaseTypes();
@@ -15,7 +15,7 @@ export default function CaseTypesPage() {
   const [showDocModal, setShowDocModal] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState("");
   const [editDoc, setEditDoc] = useState<any>(null);
-  const [docForm, setDocForm] = useState({ nameAr: "", isRequired: true });
+  const [docForm, setDocForm] = useState({ nameAr: "", description: "", isRequired: true, order: 1 });
 
   useEffect(() => {
     fetchTypes(false);
@@ -51,35 +51,46 @@ export default function CaseTypesPage() {
     }
   }
 
-  function openAddDoc(typeId: string) {
-    setSelectedTypeId(typeId);
+  function openAddDoc(type: any) {
+    const documents = type.documents || [];
+    const nextOrder = documents.length > 0
+      ? Math.max(...documents.map((document: any) => document.order || 0)) + 1
+      : 1;
+    setSelectedTypeId(type.id);
     setEditDoc(null);
-    setDocForm({ nameAr: "", isRequired: true });
+    setDocForm({ nameAr: "", description: "", isRequired: true, order: nextOrder });
     setShowDocModal(true);
   }
 
   function openEditDoc(typeId: string, doc: any) {
     setSelectedTypeId(typeId);
     setEditDoc(doc);
-    setDocForm({ nameAr: doc.nameAr, isRequired: doc.isRequired });
+    setDocForm({
+      nameAr: doc.nameAr,
+      description: doc.description || "",
+      isRequired: doc.isRequired,
+      order: doc.order ?? 1,
+    });
     setShowDocModal(true);
   }
 
   async function handleDocSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editDoc) {
-      await updateDocument(selectedTypeId, editDoc.id, docForm);
-    } else {
-      await addDocument(selectedTypeId, docForm);
+    const result = editDoc
+      ? await updateDocument(selectedTypeId, editDoc.id, docForm)
+      : await addDocument(selectedTypeId, docForm);
+    if (result.success) {
+      setShowDocModal(false);
+      fetchTypes(false);
     }
-    setShowDocModal(false);
-    fetchTypes(false);
   }
 
   async function handleDeleteDoc(typeId: string, docId: string) {
-    if (confirm("هل أنت متأكد من حذف هذا المستند الإلزامي؟")) {
-      await deleteDocument(typeId, docId);
-      fetchTypes(false);
+    if (confirm("هل أنت متأكد من حذف هذا المستند من النوع؟")) {
+      const result = await deleteDocument(typeId, docId);
+      if (result.success) {
+        fetchTypes(false);
+      }
     }
   }
 
@@ -128,23 +139,46 @@ export default function CaseTypesPage() {
                 </div>
               </div>
 
-              {/* Documents obligatoires */}
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-secondary-600">المستندات المطلوبة</h4>
-                  <button onClick={() => openAddDoc(type.id)} className="flex items-center gap-1.5 text-primary-500 hover:text-primary-600 text-xs"><IconeAnimee icone={lottiePlus} taille={21} animation="click" />إضافة مستند</button>
+                  <h4 className="text-sm font-medium text-secondary-600">مستندات النوع</h4>
+                  <button onClick={() => openAddDoc(type)} className="flex items-center gap-1.5 text-primary-500 hover:text-primary-600 text-xs">
+                    <IconeAnimee icone={lottiePlus} taille={21} animation="click" />
+                    إضافة مستند
+                  </button>
                 </div>
                 {type.documents.length === 0 ? (
-                  <p className="text-xs text-secondary-400">لا توجد مستندات مطلوبة</p>
+                  <p className="text-xs text-secondary-400">لا توجد مستندات لهذا النوع</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {type.documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-1 px-2 py-1 bg-secondary-100 rounded text-xs">
-                        <span>{doc.nameAr}</span>
-                        <button onClick={() => openEditDoc(type.id, doc)} className="text-blue-500 hover:text-blue-700 mr-1">✎</button>
-                        <button onClick={() => handleDeleteDoc(type.id, doc.id)} className="text-red-500 hover:text-red-700">×</button>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[520px] text-right">
+                      <thead>
+                        <tr className="border-b border-secondary-200 text-secondary-500">
+                          <th className="py-2 px-2 text-xs font-medium">الترتيب</th>
+                          <th className="py-2 px-2 text-xs font-medium">المستند</th>
+                          <th className="py-2 px-2 text-xs font-medium">الحالة</th>
+                          <th className="py-2 px-2 text-xs font-medium">الإجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {type.documents.map((doc) => (
+                          <tr key={doc.id} className="border-b border-secondary-100 last:border-0">
+                            <td className="py-2 px-2 text-xs text-secondary-500">{doc.order}</td>
+                            <td className="py-2 px-2">
+                              <p className="text-sm">{doc.nameAr}</p>
+                              {doc.description && <p className="text-xs text-secondary-400">{doc.description}</p>}
+                            </td>
+                            <td className="py-2 px-2 text-xs text-secondary-500">{doc.isRequired ? "إلزامي" : "اختياري"}</td>
+                            <td className="py-2 px-2">
+                              <div className="flex items-center gap-3">
+                                <button onClick={() => openEditDoc(type.id, doc)} className="text-blue-500 hover:text-blue-700 text-xs">تعديل</button>
+                                <button onClick={() => handleDeleteDoc(type.id, doc.id)} className="text-red-500 hover:text-red-700 text-xs">حذف</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -182,7 +216,7 @@ export default function CaseTypesPage() {
       </Modal>
 
       {/* Modal Document */}
-      <Modal isOpen={showDocModal} onClose={() => setShowDocModal(false)} title={editDoc ? "تعديل المستند المطلوب" : "إضافة مستند مطلوب"}>
+      <Modal isOpen={showDocModal} onClose={() => setShowDocModal(false)} title={editDoc ? "تعديل مستند النوع" : "إضافة مستند للنوع"}>
         <form onSubmit={handleDocSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-1">الاسم (بالعربية) *</label>
@@ -190,6 +224,26 @@ export default function CaseTypesPage() {
               type="text"
               value={docForm.nameAr}
               onChange={(e) => setDocForm({ ...docForm, nameAr: e.target.value })}
+              required
+              className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-1">الوصف</label>
+            <textarea
+              value={docForm.description}
+              onChange={(e) => setDocForm({ ...docForm, description: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-1">ترتيب العرض *</label>
+            <input
+              type="number"
+              min={0}
+              value={docForm.order}
+              onChange={(e) => setDocForm({ ...docForm, order: Number(e.target.value) })}
               required
               className="w-full px-4 py-2.5 border border-secondary-200 rounded-lg text-sm"
             />
